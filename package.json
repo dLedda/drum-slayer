@@ -28,7 +28,7 @@
     "svelte": "^3.0.0",
     "svelte-check": "^1.0.0",
     "svelte-preprocess": "^4.0.0",
-    "tslib": "^2.0.0"
+    "tslib": "^2.0.0",
     "sirv-cli": "^1.0.0",
     "typescript": "^4.4.0-dev.20210525",
     "source-map-support": "^0.5.19"
