@@ -5,5 +5,5 @@
     "target": "ESNext"
   },
   "include": ["./src/**/*"],
-  "exclude": ["./node_modules/*", "./__sapper__/*", "./public/*", "./src/solver/wasm/*"]
+  "exclude": ["./node_modules/*", "./__sapper__/*"]
 }
