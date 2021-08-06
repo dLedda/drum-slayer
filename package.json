@@ -1,0 +1,18 @@
+{
+  "name": "arne-drums",
+  "version": "1.0.0",
+  "description": "Drum beat visualiser and editor",
+  "main": "main.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://git.djledda.de/Ledda/arne-drums"
+  },
+  "author": "Daniel Ledda",
+  "license": "ISC",
+  "dependencies": {
+    "svelte": "^3.42.1"
+  }
+}
