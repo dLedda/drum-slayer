@@ -5,37 +5,32 @@ export type BeatInitOptions = {
         up: number,
         down: number,
     },
+    name: string,
     bars: number,
-    drumSchema: string[],
 };
 
 export default class Beat {
-    private timeSigUp: number = 4;
-    private timeSigDown: number = 4;
-    private readonly unitRecords: Record<string, BeatUnit[]>;
-    private readonly drumSchema: string[];
-    private notify: () => void = () => {};
-    private barCount: number = 1;
+    private static count = 0;
+    private readonly key: string;
+    private name: string;
+    private timeSigUp = 4;
+    private timeSigDown = 4;
+    private readonly unitRecord: BeatUnit[] = [];
+    private observers: (() => void)[] = [];
+    private barCount = 1;
 
-    constructor(options?: BeatInitOptions) {
-        this.unitRecords = {};
-        if (options) {
-            this.drumSchema = [...options.drumSchema];
-            this.initUnitRecords();
+    constructor(options: BeatInitOptions) {
+        this.key = `Beat-${Beat.count}`;
+        if (options.timeSig) {
+            this.name = options.name;
             this.setTimeSignature(options.timeSig.up, options.timeSig.down);
             this.setBars(options.bars);
         } else {
-            this.drumSchema = ['LF', 'LH', 'RH', 'RF'];
-            this.initUnitRecords();
+            this.name = this.key;
             this.setTimeSignature(4, 4);
             this.setBars(48);
         }
-    }
-
-    private initUnitRecords(): void {
-        for (const drumSchemaTag of this.drumSchema) {
-            this.unitRecords[drumSchemaTag] = [];
-        }
+        Beat.count++;
     }
 
     setTimeSignature(up: number, down: number): void {
@@ -61,15 +56,12 @@ export default class Beat {
 
     private updateBeatUnitLength() {
         const newBarCount = this.barCount * this.timeSigUp;
-        for (const drumSchemaTag of this.drumSchema) {
-            const unitRecord = this.unitRecords[drumSchemaTag];
-            if (newBarCount < unitRecord.length) {
-                unitRecord.splice(this.barCount, unitRecord.length - newBarCount);
-            } else if (newBarCount > unitRecord.length) {
-                const barsToAdd = newBarCount - unitRecord.length;
-                for (let i = 0; i < barsToAdd; i++) {
-                    unitRecord.push(new BeatUnit());
-                }
+        if (newBarCount < this.unitRecord.length) {
+            this.unitRecord.splice(this.barCount * this.timeSigUp, this.unitRecord.length - newBarCount);
+        } else if (newBarCount > this.unitRecord.length) {
+            const barsToAdd = newBarCount - this.unitRecord.length;
+            for (let i = 0; i < barsToAdd; i++) {
+                this.unitRecord.push(new BeatUnit());
             }
         }
     }
@@ -82,82 +74,89 @@ export default class Beat {
         return this.timeSigDown;
     }
 
-    stringify(): string {
-        let stringified = this.drumSchema.join(" ");
-        stringified += "\n";
-        for (let i = 0; i < this.unitRecords[this.drumSchema[0]].length; i++) {
-            for (const drumSchemaTag of this.drumSchema) {
-                stringified += this.unitRecords[drumSchemaTag][i].stringify() + " ";
-            }
-            if (i % this.timeSigUp === 2) {
-                stringified += "\n";
-            }
-            stringified += "\n";
+    turnUnitOn(index: number): void {
+        if (Math.abs(index | 0) !== index) {
+            return;
         }
-        return stringified;
+        const unit = this.getUnit(index);
+        if (unit) {
+            unit.setOn(true);
+            this.notify();
+        }
     }
 
-    swapSchemaOrder(index1: number, index2: number): void {
-        if (this.drumSchema[index1] && this.drumSchema[index2]) {
-            const temp = this.drumSchema[index1];
-            this.drumSchema[index1] = this.drumSchema[index2];
-            this.drumSchema[index2] = temp;
+    turnUnitOff(index: number): void {
+        if (Math.abs(index | 0) !== index) {
+            return;
         }
+        const unit = this.getUnit(index);
+        if (unit) {
+            unit.setOn(false);
+            this.notify();
+        }
+    }
+
+
+    toggleUnit(index: number): void {
+        if (Math.abs(index | 0) !== index) {
+            return;
+        }
+        const unit = this.getUnit(index);
+        if (unit) {
+            unit.toggle();
+            this.notify();
+        }
+    }
+
+    setUnitType(index: number, type: BeatUnitType): void {
+        if (Math.abs(index | 0) !== index) {
+            return;
+        }
+        this.getUnit(index).setType(type);
         this.notify();
     }
 
-    turnUnitOn(schemaKey: string, index: number): void {
-        if (Math.abs(index | 0) !== index) {
-            return;
-        }
-        if (this.unitRecords[schemaKey] && this.unitRecords[schemaKey][index]) {
-            this.unitRecords[schemaKey][index].setOn(true);
-        }
+    unitIsOn(index: number): boolean {
+        return this.getUnit(index)?.isOn();
     }
 
-    turnUnitOff(schemaKey: string, index: number): void {
-        if (Math.abs(index | 0) !== index) {
-            return;
-        }
-        if (this.unitRecords[schemaKey] && this.unitRecords[schemaKey][index]) {
-            this.unitRecords[schemaKey][index].setOn(false);
-        }
+    unitType(index: number): BeatUnitType {
+        return this.getUnit(index)?.getType();
     }
 
+    onUpdate(updateCallback: () => void): void {
+        this.observers.push(updateCallback);
+    }
 
-    toggleUnit(schemaKey: string, index: number): void {
-        if (Math.abs(index | 0) !== index) {
-            return;
+    private getUnit(index: number): BeatUnit {
+        if (!this.unitRecord[index]) {
+            throw new Error(`Invalid beat unit index! - ${index}`);
         }
-        if (this.unitRecords[schemaKey] && this.unitRecords[schemaKey][index]) {
-            this.unitRecords[schemaKey][index].toggle();
-        }
-    }
-
-    setUnitType(schemaKey: string, index: number, type: BeatUnitType): void {
-        if (Math.abs(index | 0) !== index) {
-            return;
-        }
-        this.unitRecords[schemaKey]?.[index]?.setType(type);
-    }
-
-    onUpdate(updateCallback: () => void) {
-        this.notify = updateCallback;
-    }
-
-    getUnit(schemaKey: string, index: number): BeatUnit | null {
-        return this.unitRecords[schemaKey]?.[index] ?? null;
-    }
-
-    getDrumSchema(): string[] {
-        return this.drumSchema.slice();
+        return this.unitRecord[index];
     }
 
     getBarCount(): number {
         return this.barCount;
     }
 
+    getKey(): string {
+        return this.key;
+    }
+
     private static isValidTimeSigRange(sig: number): boolean {
         return sig >= 2 && sig <= 64;
+    }
+
+    private notify(): void {
+        this.observers.forEach(observer => observer());
+    }
+
+    setName(newName: string): void {
+        this.name = newName;
+        this.notify();
+    }
+
+    getName(): string {
+        return this.name;
     }
 }

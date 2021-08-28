@@ -1,9 +1,10 @@
 {
-  "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
-    "lib": ["dom", "ESNext"],
-    "target": "ESNext"
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": true,
+    "module": "es6",
+    "target": "es5",
+    "allowJs": true
   },
-  "include": ["./src/**/*"],
-  "exclude": ["./node_modules/*", "./__sapper__/*"]
+  "files": ["src/index.ts"]
 }

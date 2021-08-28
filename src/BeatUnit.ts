@@ -5,25 +5,14 @@ export enum BeatUnitType {
 
 
 export default class BeatUnit {
-    private on: boolean = false;
+    private on = false;
     private type: BeatUnitType = BeatUnitType.Normal;
     private onUpdateCallbacks: ((on: boolean, type: BeatUnitType) => void)[] = [];
 
-    constructor(on: boolean = false) {
+    constructor(on = false) {
         this.on = on;
     }
-
-    stringify(): string {
-        if (!this.on) {
-            return "O";
-        }
-        if (this.type === BeatUnitType.GhostNote) {
-            return "G";
-        } else {
-            return "#";
-        }
-    }
-
+ 
     toggle(): void {
         this.on = !this.on;
         this.notify();
@@ -34,7 +23,7 @@ export default class BeatUnit {
         this.notify();
     }
 
-    setType(type: BeatUnitType) {
+    setType(type: BeatUnitType): void {
         this.type = type;
         this.notify();
     }
@@ -47,7 +36,7 @@ export default class BeatUnit {
         return this.on;
     }
 
-    onUpdate(callback: (on: boolean, type: BeatUnitType) => void) {
+    onUpdate(callback: (on: boolean, type: BeatUnitType) => void): void {
         this.onUpdateCallbacks.push(callback);
     }
 
