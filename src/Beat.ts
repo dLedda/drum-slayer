@@ -40,15 +40,15 @@ export default class Beat implements IPublisher<BeatEvents>{
         return this.publisher.addSubscriber(subscriber, eventType);
     }
 
-    setTimeSignature(up: number, down: number): void {
-        if (Beat.isValidTimeSigRange(up)) {
-            if (Beat.isValidTimeSigRange(down)) {
-                this.timeSigUp = up | 0;
-                this.timeSigDown = down | 0;
-                this.updateBeatUnitLength();
-                this.publisher.notifySubs(BeatEvents.NewTimeSig);
-            }
+    setTimeSignature(timeSig: {up?: number, down?: number}): void {
+        if (timeSig.up && Beat.isValidTimeSigRange(timeSig.up)) {
+            this.timeSigUp = timeSig.up | 0;
         }
+        if (timeSig.down && Beat.isValidTimeSigRange(timeSig.down)) {
+            this.timeSigDown = timeSig.down | 0;
+        }
+        this.updateBeatUnitLength();
+        this.publisher.notifySubs(BeatEvents.NewTimeSig);
     }
 
     setBars(barCount: number): void {

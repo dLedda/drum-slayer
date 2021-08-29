@@ -12,7 +12,9 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sh '/usr/bin/rsync ./public /var/www/public/html/drums'
+                sh '''#!/bin/bash -l
+                      /usr/bin/rsync ./public /var/www/public/html/drums'
+                '''
             }
         }
     }
