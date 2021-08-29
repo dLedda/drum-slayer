@@ -1,36 +1,43 @@
 import BeatUnit, {BeatUnitType} from "./BeatUnit";
+import {IPublisher, Publisher} from "./Publisher";
+import ISubscriber from "./Subscriber";
 
 export type BeatInitOptions = {
-    timeSig: {
+    timeSig?: {
         up: number,
         down: number,
     },
-    name: string,
-    bars: number,
+    name?: string,
+    bars?: number,
 };
 
-export default class Beat {
+export enum BeatEvents {
+    NewTimeSig,
+    NewBarCount,
+    NewName,
+    UnitChanged,
+}
+
+export default class Beat implements IPublisher<BeatEvents>{
     private static count = 0;
     private readonly key: string;
     private name: string;
     private timeSigUp = 4;
     private timeSigDown = 4;
     private readonly unitRecord: BeatUnit[] = [];
-    private observers: (() => void)[] = [];
     private barCount = 1;
+    private publisher = new Publisher<BeatEvents>();
 
-    constructor(options: BeatInitOptions) {
+    constructor(options?: BeatInitOptions) {
         this.key = `Beat-${Beat.count}`;
-        if (options.timeSig) {
-            this.name = options.name;
-            this.setTimeSignature(options.timeSig.up, options.timeSig.down);
-            this.setBars(options.bars);
-        } else {
-            this.name = this.key;
-            this.setTimeSignature(4, 4);
-            this.setBars(48);
-        }
+        this.name = options?.name ?? this.key;
+        this.setTimeSignature(options?.timeSig?.up ?? 4, options?.timeSig?.down ?? 4);
+        this.setBars(options?.bars ?? 48);
         Beat.count++;
+    }
+
+    addSubscriber(subscriber: ISubscriber, eventType: BeatEvents | "all"): { unbind: () => void } {
+        return this.publisher.addSubscriber(subscriber, eventType);
     }
 
     setTimeSignature(up: number, down: number): void {
@@ -39,7 +46,7 @@ export default class Beat {
                 this.timeSigUp = up | 0;
                 this.timeSigDown = down | 0;
                 this.updateBeatUnitLength();
-                this.notify();
+                this.publisher.notifySubs(BeatEvents.NewTimeSig);
             }
         }
     }
@@ -51,7 +58,7 @@ export default class Beat {
         }
         this.barCount = barCount;
         this.updateBeatUnitLength();
-        this.notify();
+        this.publisher.notifySubs(BeatEvents.NewBarCount);
     }
 
     private updateBeatUnitLength() {
@@ -81,7 +88,7 @@ export default class Beat {
         const unit = this.getUnit(index);
         if (unit) {
             unit.setOn(true);
-            this.notify();
+            this.publisher.notifySubs(BeatEvents.UnitChanged);
         }
     }
 
@@ -92,7 +99,7 @@ export default class Beat {
         const unit = this.getUnit(index);
         if (unit) {
             unit.setOn(false);
-            this.notify();
+            this.publisher.notifySubs(BeatEvents.UnitChanged);
         }
     }
 
@@ -104,7 +111,7 @@ export default class Beat {
         const unit = this.getUnit(index);
         if (unit) {
             unit.toggle();
-            this.notify();
+            this.publisher.notifySubs(BeatEvents.UnitChanged);
         }
     }
 
@@ -113,7 +120,7 @@ export default class Beat {
             return;
         }
         this.getUnit(index).setType(type);
-        this.notify();
+        this.publisher.notifySubs(BeatEvents.UnitChanged);
     }
 
     unitIsOn(index: number): boolean {
@@ -122,10 +129,6 @@ export default class Beat {
 
     unitType(index: number): BeatUnitType {
         return this.getUnit(index)?.getType();
-    }
-
-    onUpdate(updateCallback: () => void): void {
-        this.observers.push(updateCallback);
     }
 
     private getUnit(index: number): BeatUnit {
@@ -147,13 +150,9 @@ export default class Beat {
         return sig >= 2 && sig <= 64;
     }
 
-    private notify(): void {
-        this.observers.forEach(observer => observer());
-    }
-
     setName(newName: string): void {
         this.name = newName;
-        this.notify();
+        this.publisher.notifySubs(BeatEvents.NewName);
     }
 
     getName(): string {

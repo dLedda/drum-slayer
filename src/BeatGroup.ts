@@ -1,20 +1,33 @@
 import Beat, {BeatInitOptions} from "./Beat";
+import {IPublisher, Publisher} from "./Publisher";
+import ISubscriber from "./Subscriber";
 
 type BeatGroupInitOptions = {
     beats: BeatInitOptions[],
 }
 
-export default class BeatGroup {
+const enum BeatGroupEvents {
+    BeatOrderChanged,
+    BeatListChanged,
+}
+
+export default class BeatGroup implements IPublisher<BeatGroupEvents> {
     private beats: Beat[] = [];
     private beatKeyMap: Record<string, number> = {};
-    private subscribers: (() => void)[] = [];
+    private publisher: Publisher<BeatGroupEvents> = new Publisher<BeatGroupEvents>();
 
-    constructor(options: BeatGroupInitOptions) {
-        for (const beatOptions of options.beats) {
-            const newBeat = new Beat(beatOptions);
-            this.beats.push(newBeat);
-            this.beatKeyMap[newBeat.getKey()] = this.beats.length - 1;
+    constructor(options?: BeatGroupInitOptions) {
+        if (options?.beats) {
+            for (const beatOptions of options.beats) {
+                const newBeat = new Beat(beatOptions);
+                this.beats.push(newBeat);
+                this.beatKeyMap[newBeat.getKey()] = this.beats.length - 1;
+            }
         }
+    }
+
+    addSubscriber(subscriber: ISubscriber, eventType: "all" | BeatGroupEvents | BeatGroupEvents[]): { unbind: () => void } {
+        return this.publisher.addSubscriber(subscriber, eventType);
     }
 
     getBeatByKey(beatKey: string): Beat {
@@ -46,7 +59,7 @@ export default class BeatGroup {
         this.beats[beatIndex2] = beat1;
         this.beatKeyMap[beat1.getKey()] = beatIndex2;
         this.beatKeyMap[beat2.getKey()] = beatIndex1;
-        this.notify();
+        this.publisher.notifySubs(BeatGroupEvents.BeatOrderChanged);
     }
 
     swapBeatsByKeys(beatKey1: string, beatKey2: string): void {
@@ -55,28 +68,12 @@ export default class BeatGroup {
         this.swapBeatsByIndices(index1, index2);
     }
 
-    private notify(): void {
-        this.subscribers.forEach(subscriber => subscriber());
-    }
-
-    onBeatChangeByKey(beatKey: string, subscriber: (beatKey: string) => void): void {
-        this.getBeatByKey(beatKey).onUpdate(() => subscriber(beatKey));
-    }
-
-    onBeatChangeByIndex(beatIndex: number, subscriber: (beatIndex: number) => void): void {
-        this.getBeatByIndex(beatIndex).onUpdate(() => subscriber(beatIndex));
-    }
-
-    onBeatsChange(subscriber: () => void): void {
-        this.subscribers.push(subscriber);
-    }
-
     moveBeatBack(beatKey: string): void {
         const index = this.beatKeyMap[beatKey];
         if (typeof index !== "undefined" && index > 0) {
             this.swapBeatsByIndices(index, index - 1);
         }
-        this.notify();
+        this.publisher.notifySubs(BeatGroupEvents.BeatOrderChanged);
     }
 
     moveBeatForward(beatKey: string): void {
@@ -84,7 +81,7 @@ export default class BeatGroup {
         if (typeof index !== "undefined" && index < this.getBeatCount()) {
             this.swapBeatsByIndices(index, index + 1);
         }
-        this.notify();
+        this.publisher.notifySubs(BeatGroupEvents.BeatOrderChanged);
     }
 
     canMoveBeatBack(beatKey: string): boolean {
@@ -95,8 +92,22 @@ export default class BeatGroup {
         return this.beatKeyMap[beatKey] < this.beats.length - 1;
     }
 
+    addBeat(options?: BeatInitOptions): Beat {
+        const newBeat = new Beat(options);
+        this.beats.push(newBeat);
+        this.beatKeyMap[newBeat.getKey()] = this.beats.length;
+        this.publisher.notifySubs(BeatGroupEvents.BeatListChanged);
+        return newBeat;
+    }
+
+    removeBeat(beatKey: string): void {
+        const beat = this.getBeatByKey(beatKey);
+        this.publisher.notifySubs(BeatGroupEvents.BeatListChanged);
+        this.beats.splice(this.beats.indexOf(beat), 1);
+    }
+
     setBeatName(beatKey: string, newName: string): void {
         this.getBeatByKey(beatKey).setName(newName);
-        this.notify();
+        this.publisher.notifySubs(BeatGroupEvents.BeatOrderChanged);
     }
 }

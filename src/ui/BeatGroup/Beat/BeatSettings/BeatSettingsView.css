@@ -1,0 +1,7 @@
+.beatSettingsView {
+    display: none;
+}
+
+.beatSettingsView.visible {
+    display: block;
+}

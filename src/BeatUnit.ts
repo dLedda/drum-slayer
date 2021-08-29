@@ -1,31 +1,51 @@
+import {IPublisher, Publisher} from "./Publisher";
+import ISubscriber from "./Subscriber";
+
 export enum BeatUnitType {
     Normal,
     GhostNote,
 }
 
 
-export default class BeatUnit {
+const enum BeatUnitEvents {
+    Toggle,
+    On,
+    Off,
+    TypeChange,
+}
+
+
+export default class BeatUnit implements IPublisher<BeatUnitEvents> {
+    private publisher: Publisher<BeatUnitEvents> = new Publisher<BeatUnitEvents>();
     private on = false;
     private type: BeatUnitType = BeatUnitType.Normal;
-    private onUpdateCallbacks: ((on: boolean, type: BeatUnitType) => void)[] = [];
 
     constructor(on = false) {
         this.on = on;
     }
- 
+
+    addSubscriber(subscriber: ISubscriber, eventType: "all" | BeatUnitEvents | BeatUnitEvents[]): { unbind: () => void } {
+        return this.publisher.addSubscriber(subscriber, eventType);
+    }
+
     toggle(): void {
         this.on = !this.on;
-        this.notify();
+        this.publisher.notifySubs(BeatUnitEvents.Toggle);
+        if (this.on) {
+            this.publisher.notifySubs(BeatUnitEvents.On);
+        } else {
+            this.publisher.notifySubs(BeatUnitEvents.Off);
+        }
     }
 
     setOn(on: boolean): void {
         this.on = on;
-        this.notify();
+        this.publisher.notifySubs(BeatUnitEvents.On);
     }
 
     setType(type: BeatUnitType): void {
         this.type = type;
-        this.notify();
+        this.publisher.notifySubs(BeatUnitEvents.Off);
     }
 
     getType(): BeatUnitType {
@@ -34,15 +54,5 @@ export default class BeatUnit {
 
     isOn(): boolean {
         return this.on;
-    }
-
-    onUpdate(callback: (on: boolean, type: BeatUnitType) => void): void {
-        this.onUpdateCallbacks.push(callback);
-    }
-
-    notify(): void {
-        for (const cb of this.onUpdateCallbacks) {
-            cb(this.on, this.type);
-        }
     }
 }

@@ -1,67 +1,83 @@
-// Generated using webpack-cli https://github.com/webpack/webpack-cli
+const path = require("path");
+const webpack = require("webpack");
+const config = require("./config.json");
 
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const TerserWebpackPlugin = require("terser-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-const isProduction = process.env.NODE_ENV == 'production';
-
-
-const stylesHandler = MiniCssExtractPlugin.loader;
-
-
-
-const config = {
-    entry: './src/index.ts',
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-    },
-    devServer: {
-        open: true,
-        host: 'localhost',
-    },
-    plugins: [
-        new HtmlWebpackPlugin({
-            template: 'index.html',
-        }),
-
-        new MiniCssExtractPlugin(),
-
-        // Add your plugins here
-        // Learn more about plugins from https://webpack.js.org/configuration/plugins/
-    ],
+const webpackConfig = {
+    mode: "development",
+    entry: "./src/main.ts",
+    plugins: [new webpack.ProgressPlugin()],
     module: {
         rules: [
             {
-                test: /\.(ts|tsx)$/i,
-                loader: 'ts-loader',
-                exclude: ['/node_modules/'],
+                test: /\.(ts|tsx)$/,
+                loader: "ts-loader",
+                include: [path.resolve(__dirname, "src")],
+                exclude: [/node_modules/]
             },
             {
-                test: /\.css$/i,
-                use: [stylesHandler,'css-loader'],
-            },
-            {
-                test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
-                type: 'asset',
-            },
+                test: /.css$/,
 
-            // Add your rules for custom modules here
-            // Learn more about loaders from https://webpack.js.org/loaders/
-        ],
+                use: [{
+                    loader: config.development ? "style-loader" : MiniCssExtractPlugin.loader,
+                }, {
+                    loader: "css-loader",
+                    options: {
+                        sourceMap: true
+                    }
+                }]
+            },
+            {
+                test: /\.(png|jpe?g|gif|ttf|woff2?|eot|svg)$/i,
+                use: [
+                    {
+                        loader: "file-loader",
+                    },
+                ],
+            }]
     },
+
     resolve: {
-        extensions: ['.tsx', '.ts', '.js'],
+        extensions: [".tsx", ".ts", ".js"]
+    },
+
+    output: {
+        filename: "bundle.js",
+        publicPath: "/static",
+        path: path.resolve(__dirname, "./public/static/"),
+    },
+
+    devServer: {
+        static: {
+            directory: path.join(__dirname, "./public"),
+        },
+        hot: true,
+        compress: true,
+        port: 9000,
     },
 };
 
-module.exports = () => {
-    if (isProduction) {
-        config.mode = 'production';
-        
-        
-    } else {
-        config.mode = 'development';
-    }
-    return config;
-};
+if (!config.development) {
+    webpackConfig.optimization = {
+        minimizer: [new TerserWebpackPlugin()],
+
+        splitChunks: {
+            cacheGroups: {
+                vendors: {
+                    priority: -10,
+                    test: /[\\/]node_modules[\\/]/
+                }
+            },
+
+            chunks: "async",
+            minChunks: 1,
+            minSize: 30000,
+            name: false
+        }
+    };
+    webpackConfig.mode = "production";
+}
+
+module.exports = {...webpackConfig};
