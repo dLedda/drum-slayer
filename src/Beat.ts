@@ -32,7 +32,7 @@ export default class Beat implements IPublisher<BeatEvents>{
         this.key = `Beat-${Beat.count}`;
         this.name = options?.name ?? this.key;
         this.setTimeSignature({up: options?.timeSig?.up ?? 4, down: options?.timeSig?.down ?? 4});
-        this.setBars(options?.bars ?? 48);
+        this.setBars(options?.bars ?? 4);
         Beat.count++;
     }
 
@@ -59,6 +59,10 @@ export default class Beat implements IPublisher<BeatEvents>{
         this.barCount = barCount;
         this.updateBeatUnitLength();
         this.publisher.notifySubs(BeatEvents.NewBarCount);
+    }
+
+    getUnitByIndex(index: number): BeatUnit | null {
+        return this.unitRecord[index] ?? null;
     }
 
     private updateBeatUnitLength() {
@@ -146,7 +150,7 @@ export default class Beat implements IPublisher<BeatEvents>{
         return this.key;
     }
 
-    private static isValidTimeSigRange(sig: number): boolean {
+    static isValidTimeSigRange(sig: number): boolean {
         return sig >= 2 && sig <= 64;
     }
 

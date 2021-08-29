@@ -1,8 +1,12 @@
-.rootView {
+.root {
     margin: auto;
     width: 80%;
 }
 
-.rootView .title {
+.root .title {
     text-align: center;
+}
+
+.root input {
+    width: 5em;
 }

@@ -44,7 +44,7 @@ export class Publisher<T extends (string | number)> implements IPublisher<T> {
             sub.notify(this, eventType);
         }
         for (const sub of this.getSubscribers("all")) {
-            sub.notify(this, "all");
+            sub.notify(this, eventType);
         }
     }
 }

@@ -1,0 +1,32 @@
+.beat:first-child {
+    padding-left: 5px;
+}
+
+.beat:last-child {
+    padding-right: 0;
+}
+
+.beat > * {
+    padding-right: 1em;
+    padding-left: 1em;
+}
+
+.beat-settings-btn {
+    margin: 0;
+    display: inline-block;
+}
+
+.beat-unit-block {
+    display: inline-block;
+}
+
+.beat-title {
+    display: inline-block;
+    width: 3em;
+    margin: 0;
+}
+
+.beat-spacer {
+    display: inline-block;
+    width: 1em;
+}

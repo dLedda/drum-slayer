@@ -26,7 +26,6 @@ mainBeatGroup.addBeat({
 
 const appNode = document.querySelector("#app");
 
-
 if (appNode) {
     const appRoot = new RootView({
         parent: appNode as HTMLDivElement,

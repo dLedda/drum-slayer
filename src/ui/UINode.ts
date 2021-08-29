@@ -12,8 +12,21 @@ type IRenderAttributes<
 
 export default abstract class UINode {
     protected node: HTMLElement | null = null;
+    protected parent: HTMLElement | null = null;
 
-    constructor(options: UINodeOptions) {
+    constructor(options: UINodeOptions) {}
+
+    render(): void {
+        const oldNode = this.node;
+        this.node = this.rebuild();
+        if (oldNode) {
+            if (!this.parent) {
+                this.parent = oldNode.parentElement;
+            }
+            this.parent!.replaceChild(this.node, oldNode);
+        } else {
+            this.parent!.appendChild(this.node);
+        }
     }
 
     abstract rebuild(): HTMLElement;

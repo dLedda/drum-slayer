@@ -11,7 +11,7 @@ export type RootUINodeOptions = UINodeOptions & {
 
 export default class RootView extends UINode {
     private title: string;
-    private parent: HTMLElement;
+    protected parent: HTMLElement;
     private beatGroupView: BeatGroupView;
     private mainBeatGroup: BeatGroup;
 
@@ -24,23 +24,13 @@ export default class RootView extends UINode {
         this.rebuild();
     }
 
-    render() {
-        const oldNode = this.node;
-        this.node = this.rebuild();
-        if (oldNode) {
-            this.parent.replaceChild(oldNode, this.node);
-        } else {
-            this.parent.appendChild(this.node);
-        }
-    }
-
     rebuild(): HTMLDivElement {
         return UINode.make("div", {
+            classes: ["root"],
             subs: [
                 UINode.make("h1", {innerText: this.title, classes: ["title"]}),
                 this.beatGroupView.rebuild(),
             ],
-            classes: ["rootView"]
         });
     }
 }

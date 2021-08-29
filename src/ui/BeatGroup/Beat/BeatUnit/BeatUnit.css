@@ -1,0 +1,11 @@
+.beat-unit {
+    width: 2em;
+    height: 2em;
+    background-color: white;
+    border: 0.1em solid black;
+    display: inline-block;
+}
+
+.beat-unit.on {
+    background-color: darksalmon;
+}

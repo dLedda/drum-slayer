@@ -1,0 +1,7 @@
+.beat-settings {
+    display: none;
+}
+
+.beat-settings.visible {
+    display: block;
+}

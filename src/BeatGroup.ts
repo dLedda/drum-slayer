@@ -6,15 +6,19 @@ type BeatGroupInitOptions = {
     beats: BeatInitOptions[],
 }
 
-const enum BeatGroupEvents {
+export const enum BeatGroupEvents {
     BeatOrderChanged,
     BeatListChanged,
+    GlobalBarCountChanged,
+    GlobalTimeSigUpChanged,
 }
 
 export default class BeatGroup implements IPublisher<BeatGroupEvents> {
     private beats: Beat[] = [];
     private beatKeyMap: Record<string, number> = {};
     private publisher: Publisher<BeatGroupEvents> = new Publisher<BeatGroupEvents>();
+    private lastGlobalBarCount: number;
+    private lastGlobalTimeSigUp: number;
 
     constructor(options?: BeatGroupInitOptions) {
         if (options?.beats) {
@@ -23,11 +27,38 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents> {
                 this.beats.push(newBeat);
                 this.beatKeyMap[newBeat.getKey()] = this.beats.length - 1;
             }
+            this.lastGlobalBarCount = this.beats[0].getBarCount();
+            this.lastGlobalTimeSigUp = this.beats[0].getTimeSigUp();
+        } else {
+            this.lastGlobalBarCount = 4;
+            this.lastGlobalTimeSigUp = 4;
         }
     }
 
     addSubscriber(subscriber: ISubscriber, eventType: "all" | BeatGroupEvents | BeatGroupEvents[]): { unbind: () => void } {
         return this.publisher.addSubscriber(subscriber, eventType);
+    }
+
+    setGlobalBarCount(barCount: number): void {
+        if (barCount <= 0 || (barCount | 0) !== barCount) {
+            return;
+        }
+        this.lastGlobalBarCount = barCount;
+        for (const beat of this.beats) {
+            beat.setBars(barCount);
+        }
+        this.publisher.notifySubs(BeatGroupEvents.GlobalBarCountChanged);
+    }
+
+    setGlobalTimeSigUp(timeSigUp: number): void {
+        if (!Beat.isValidTimeSigRange(timeSigUp)) {
+            return;
+        }
+        this.lastGlobalTimeSigUp = timeSigUp;
+        for (const beat of this.beats) {
+            beat.setTimeSignature({up: timeSigUp});
+        }
+        this.publisher.notifySubs(BeatGroupEvents.GlobalTimeSigUpChanged);
     }
 
     getBeatByKey(beatKey: string): Beat {

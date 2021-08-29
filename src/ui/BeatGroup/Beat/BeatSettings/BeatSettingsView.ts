@@ -1,8 +1,8 @@
 import UINode, {UINodeOptions} from "../../../UINode";
 import Beat, {BeatEvents} from "../../../../Beat";
 import {IPublisher} from "../../../../Publisher";
-import "./BeatSettingsView.css";
 import ISubscriber from "../../../../Subscriber";
+import "./BeatSettings.css";
 
 export type BeatSettingsViewUINodeOptions = UINodeOptions & {
     beat: Beat,
@@ -22,7 +22,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
     }
 
     private setupBindings() {
-        this.beat.addSubscriber(this, BeatEvents.NewName);
+        this.beat.addSubscriber(this, "all");
     }
 
     notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T) {
@@ -34,7 +34,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         }
     }
 
-    toggleVisible() {
+    toggleVisible(): void {
         this.visible = !this.visible;
         if (this.visible) {
             this.node?.classList.add("visible");
@@ -43,26 +43,43 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         }
     }
 
-    isOpen() {
+    isOpen(): boolean {
         return this.visible;
     }
 
     rebuild(): HTMLElement {
-        this.timeSigUp = UINode.make("input", {});
-        this.timeSigUp.addEventListener("input",
-            (event) => this.beat.setTimeSignature({
-                up: Number((event.target as HTMLInputElement).value) }));
-        this.timeSigDown = UINode.make("input", {});
-        this.timeSigDown.addEventListener("input",
-            (event) => this.beat.setTimeSignature({
-                down: Number((event.target as HTMLInputElement).value) }));
+        this.timeSigUp = UINode.make("input", {
+            value: this.beat.getTimeSigUp().toString(),
+            oninput: (event) => {
+                this.beat.setTimeSignature({up: Number((event.target as HTMLInputElement).value) });
+            },
+        });
+        this.timeSigDown = UINode.make("input", {
+            value: this.beat.getTimeSigDown().toString(),
+            oninput: (event) => {
+                this.beat.setTimeSignature({down: Number((event.target as HTMLInputElement).value) });
+            },
+        });
+        this.barCountInput = UINode.make("input", {
+            value: this.beat.getBarCount().toString(),
+            oninput: (event) => {
+                this.beat.setBars(Number((event.target as HTMLInputElement).value));
+            },
+        });
         this.node = UINode.make("div", {
             subs: [
-                UINode.make("p", {innerText: `Settings for ${this.beat.getName()}`}),
-                this.timeSigUp,
-                this.timeSigDown,
+                UINode.make("div", {
+                    classes: ["beat-settings-time-sig"],
+                    subs: [
+                        UINode.make("label", {innerText: "Time Signature:"}),
+                        this.timeSigUp,
+                        this.timeSigDown,
+                    ]
+                }),
+                UINode.make("label", {innerText: "Bars:"}),
+                this.barCountInput,
             ],
-            classes: ["beatSettingsView"]
+            classes: ["beat-settings"]
         });
         return this.node;
     }

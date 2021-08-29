@@ -7,7 +7,7 @@ export enum BeatUnitType {
 }
 
 
-const enum BeatUnitEvents {
+export const enum BeatUnitEvents {
     Toggle,
     On,
     Off,
