@@ -11,9 +11,9 @@ export type BeatSettingsViewUINodeOptions = UINodeOptions & {
 export default class BeatSettingsView extends UINode implements ISubscriber {
     private beat: Beat;
     private visible = false;
-    private timeSigUp: HTMLInputElement;
-    private timeSigDown: HTMLInputElement;
-    private barCountInput: HTMLInputElement;
+    private timeSigUp!: HTMLInputElement;
+    private timeSigDown!: HTMLInputElement;
+    private barCountInput!: HTMLInputElement;
 
     constructor(options: BeatSettingsViewUINodeOptions) {
         super(options);
@@ -30,7 +30,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
             this.timeSigUp.value = this.beat.getTimeSigUp().toString();
             this.timeSigDown.value = this.beat.getTimeSigDown().toString();
         } else if (event === BeatEvents.NewBarCount) {
-            this.barCountInput.value = this.beat.getBarCount();
+            this.barCountInput.value = this.beat.getBarCount().toString();
         }
     }
 
