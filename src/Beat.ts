@@ -31,7 +31,7 @@ export default class Beat implements IPublisher<BeatEvents>{
     constructor(options?: BeatInitOptions) {
         this.key = `Beat-${Beat.count}`;
         this.name = options?.name ?? this.key;
-        this.setTimeSignature(options?.timeSig?.up ?? 4, options?.timeSig?.down ?? 4);
+        this.setTimeSignature({up: options?.timeSig?.up ?? 4, down: options?.timeSig?.down ?? 4});
         this.setBars(options?.bars ?? 48);
         Beat.count++;
     }
