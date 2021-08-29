@@ -12,7 +12,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sh '''#!/bin/bash
+                sh '''#!/bin/sh
 /usr/bin/rsync ./public /var/www/public/html/drums
 '''
             }
