@@ -1,7 +1,31 @@
 .beat-settings {
+    padding: 1em;
     display: none;
+    text-align: center;
+    width: 40em;
+    justify-content: space-evenly;
 }
 
 .beat-settings.visible {
+    display: inline-flex;
+}
+
+.beat-settings-time-sig-up {
     display: block;
+}
+
+.beat-settings-time-sig-down {
+    display: block;
+}
+
+.beat-settings-option {
+    display: inline-block;
+}
+
+.beat-settings-option-group {
+    align-self: stretch;
+}
+
+.beat-settings-time-sig input {
+    margin: auto;
 }

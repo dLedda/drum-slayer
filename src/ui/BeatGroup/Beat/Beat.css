@@ -12,16 +12,31 @@
 }
 
 .beat-settings-btn {
-    margin: 0;
+    cursor: pointer;
+    line-height: 2em;
     display: inline-block;
+    height: 2em;
+    border: 1px solid grey;
+    border-radius: 1em;
+    user-select: none;
+    transition: background-color 150ms;
+}
+
+.beat-settings-btn:hover {
+    background-color: #eaeaea;
+}
+
+.beat-settings-btn.active {
+    background-color: lightgrey;
+    transition: none;
 }
 
 .beat-unit-block {
-    display: inline-block;
+    height: 2em;
 }
 
 .beat-title {
-    display: inline-block;
+    line-height: 2em;
     width: 3em;
     margin: 0;
 }
@@ -29,4 +44,17 @@
 .beat-spacer {
     display: inline-block;
     width: 1em;
+    height: 2em;
+}
+
+.beat-main {
+    display: inline-flex;
+}
+
+.beat-settings-container {
+    display: flex;
+}
+
+.beat {
+    width: max-content;
 }

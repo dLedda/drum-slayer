@@ -1,3 +1,14 @@
 .beat-group-settings {
+}
 
+.beat-group-settings-options {
+    padding: 1em;
+    display: inline-flex;
+    width: 40em;
+    justify-content: space-evenly;
+}
+
+.beat-group-settings-option {
+    display: inline-block;
+    text-align: center;
 }

@@ -1,11 +1,30 @@
 .beat-unit {
     width: 2em;
     height: 2em;
+    margin-right: 0.2em;
     background-color: white;
-    border: 0.1em solid black;
+    border-width: 0.1em 0.1em 0.1em 0.1em;
+    border-color: black;
+    border-style: solid;
     display: inline-block;
+    transition: background-color 150ms;
+    cursor: pointer;
 }
 
-.beat-unit.on {
+.beat-unit:hover {
+    background-color: #f1c3b6;
+    transition: none;
+}
+
+.beat-unit.beat-unit-ghost:hover {
+    background-color: #c9e2c9;
+}
+
+.beat-unit.beat-unit-on {
     background-color: darksalmon;
+    transition: none;
+}
+
+.beat-unit.beat-unit-on.beat-unit-ghost {
+    background-color: darkseagreen;
 }

@@ -28,13 +28,12 @@ const appNode = document.querySelector("#app");
 
 if (appNode) {
     const appRoot = new RootView({
-        parent: appNode as HTMLDivElement,
         title: "Drum Slayer",
         mainBeatGroup: mainBeatGroup,
     });
     //@ts-ignore
     window.appRoot = appRoot;
-    appRoot.render();
+    appNode.appendChild(appRoot.render());
     console.log("OK!");
 } else {
     console.error("FUCK!");

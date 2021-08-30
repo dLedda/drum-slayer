@@ -14,15 +14,17 @@ export default class BeatView extends UINode implements ISubscriber {
     private beat: Beat;
     private title!: HTMLHeadingElement;
     private settingsView!: BeatSettingsView;
-    private settingsToggleButton!: HTMLButtonElement;
+    private settingsToggleButton!: HTMLDivElement;
     private beatUnitViews: BeatUnitView[] = [];
-    private beatUnitViewBlock!: HTMLElement;
+    private beatUnitViewBlock: HTMLElement | null = null;
+    private lastHoveredBeatUnitView: BeatUnitView | null = null;
+    private static deselectingUnits = false;
+    private static selectingUnits = false;
 
     constructor(options: BeatUINodeOptions) {
         super(options);
         this.beat = options.beat;
         this.setupBindings();
-        this.rebuild();
     }
 
     private setupBindings() {
@@ -33,29 +35,85 @@ export default class BeatView extends UINode implements ISubscriber {
         if (event === BeatEvents.NewName) {
             this.title.innerText = this.beat.getName();
         } else if (event === BeatEvents.NewTimeSig) {
-            this.render();
+            this.setupBeatUnits();
         } else if (event === BeatEvents.NewBarCount) {
-            this.render();
+            this.setupBeatUnits();
+        } else if (event === BeatEvents.DisplayTypeChanged) {
+            this.setupBeatUnits();
+        } else if (event === BeatEvents.LoopLengthChanged) {
+            this.setupBeatUnits();
         }
     }
 
     private toggleSettings() {
         this.settingsView.toggleVisible();
-        this.settingsToggleButton.innerText = this.settingsView.isOpen() ? "Hide Settings" : "Show Settings";
+        if (this.settingsView.isOpen()) {
+            this.settingsToggleButton.classList.add("active");
+        } else {
+            this.settingsToggleButton.classList.remove("active");
+        }
     }
 
-    private makeBeatUnits() {
+    private rebuildBeatUnitViews() {
         const beatUnitCount = this.beat.getBarCount() * this.beat.getTimeSigUp();
-        this.beatUnitViews = [];
+        this.beatUnitViews.splice(beatUnitCount, this.beatUnitViews.length - beatUnitCount);
         for (let i = 0; i < beatUnitCount; i++) {
             const beatUnit = this.beat.getUnitByIndex(i);
             if (beatUnit) {
-                this.beatUnitViews.push(new BeatUnitView({beatUnit}));
+                let view: BeatUnitView;
+                if (this.beatUnitViews[i]) {
+                    view = this.beatUnitViews[i];
+                    view.setUnit(beatUnit);
+                } else {
+                    view = new BeatUnitView({beatUnit});
+                    this.beatUnitViews.push(view);
+                }
+                view.onMouseDown((event: MouseEvent) => this.onBeatUnitClick(event.button, i));
+                window.addEventListener("mouseup", (event: MouseEvent) => {
+                    BeatView.selectingUnits = false;
+                    BeatView.deselectingUnits = false;
+                });
+                view.onHover(() => {
+                    this.lastHoveredBeatUnitView = view;
+                    if (BeatView.selectingUnits) {
+                        this.lastHoveredBeatUnitView.turnOn();
+                    } else if (BeatView.deselectingUnits) {
+                        this.lastHoveredBeatUnitView.turnOff();
+                    }
+                });
             }
         }
     }
 
+    private onBeatUnitClick(button: number, index: number) {
+        if (button === 0) {
+            BeatView.selectingUnits = true;
+            this.beat.getUnitByIndex(index)?.toggle();
+        } else if (button === 2) {
+            BeatView.deselectingUnits = true;
+            this.beat.getUnitByIndex(index)?.setOn(false);
+        }
+    }
+
+    private buildBeatUnitViewBlock(): void {
+        const beatUnitNodes: HTMLElement[] = [];
+        for (let i = 0; i < this.beatUnitViews.length; i++) {
+            beatUnitNodes.push(this.beatUnitViews[i].render());
+        }
+        if (this.beatUnitViewBlock) {
+            this.beatUnitViewBlock.replaceChildren(...beatUnitNodes);
+        } else {
+            this.beatUnitViewBlock = UINode.make("div", {
+                classes: ["beat-unit-block"],
+                subs: [...beatUnitNodes],
+            });
+        }
+    }
+
     private respaceBeatUnits(): void {
+        if (!this.beatUnitViewBlock) {
+            return;
+        }
         this.beatUnitViewBlock.querySelectorAll(".beat-spacer").forEach(spacer => spacer.remove());
         const barLength = this.beat.getTimeSigUp();
         const barCount = this.beat.getBarCount();
@@ -79,32 +137,39 @@ export default class BeatView extends UINode implements ISubscriber {
         }
     }
 
+    private setupBeatUnits(): void {
+        this.rebuildBeatUnitViews();
+        this.buildBeatUnitViewBlock();
+        this.respaceBeatUnits();
+    }
+
     rebuild(): HTMLElement {
         this.title = UINode.make("h3", {
             innerText: this.beat.getName(),
             classes: ["beat-title"],
         });
-        this.makeBeatUnits();
+        this.setupBeatUnits();
         this.settingsView = new BeatSettingsView({beat: this.beat});
-        this.settingsToggleButton = UINode.make("button", {
+        this.settingsToggleButton = UINode.make("div", {
             classes: ["beat-settings-btn"],
-            innerText: this.settingsView.isOpen() ? "Hide Settings" : "Show Settings",
+            innerText: "Settings",
+            onclick: () => this.toggleSettings()
         });
-        this.settingsToggleButton.addEventListener("click", () => this.toggleSettings());
-        this.beatUnitViewBlock = UINode.make("div", {
-            classes: ["beat-unit-block"],
-            subs: [
-                ...this.beatUnitViews.map(view => view.rebuild()),
-            ],
-        });
-        this.respaceBeatUnits();
         this.node = UINode.make("div", {
             classes: ["beat"],
             subs: [
-                this.title,
-                this.beatUnitViewBlock,
+                UINode.make("div", {
+                    classes: ["beat-main"],
+                    subs: [
+                        this.title,
+                        this.beatUnitViewBlock!,
+                    ]
+                }),
                 this.settingsToggleButton,
-                this.settingsView.rebuild(),
+                UINode.make("div", {
+                    classes: ["beat-settings-container"],
+                    subs: [this.settingsView.render()],
+                }),
             ],
         });
         return this.node;

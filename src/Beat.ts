@@ -1,6 +1,8 @@
 import BeatUnit, {BeatUnitType} from "./BeatUnit";
 import {IPublisher, Publisher} from "./Publisher";
 import ISubscriber from "./Subscriber";
+import BeatLike from "./BeatLike";
+import {isPosInt} from "./utils";
 
 export type BeatInitOptions = {
     timeSig?: {
@@ -9,6 +11,8 @@ export type BeatInitOptions = {
     },
     name?: string,
     bars?: number,
+    isLooping?: boolean,
+    loopLength?: number,
 };
 
 export enum BeatEvents {
@@ -16,9 +20,11 @@ export enum BeatEvents {
     NewBarCount,
     NewName,
     UnitChanged,
+    DisplayTypeChanged,
+    LoopLengthChanged,
 }
 
-export default class Beat implements IPublisher<BeatEvents>{
+export default class Beat implements IPublisher<BeatEvents>, BeatLike {
     private static count = 0;
     private readonly key: string;
     private name: string;
@@ -27,13 +33,30 @@ export default class Beat implements IPublisher<BeatEvents>{
     private readonly unitRecord: BeatUnit[] = [];
     private barCount = 1;
     private publisher = new Publisher<BeatEvents>();
+    private loopLength: number;
+    private looping: boolean;
 
     constructor(options?: BeatInitOptions) {
         this.key = `Beat-${Beat.count}`;
         this.name = options?.name ?? this.key;
         this.setTimeSignature({up: options?.timeSig?.up ?? 4, down: options?.timeSig?.down ?? 4});
-        this.setBars(options?.bars ?? 4);
+        this.setBarCount(options?.bars ?? 4);
         Beat.count++;
+        this.loopLength = options?.loopLength ?? this.timeSigUp * this.barCount;
+        this.looping = options?.isLooping ?? false;
+    }
+
+    setLoopLength(loopLength: number): void {
+        if (!isPosInt(loopLength) || loopLength < 2) {
+            return;
+        }
+        this.loopLength = loopLength | 0;
+        this.publisher.notifySubs(BeatEvents.LoopLengthChanged);
+    }
+
+    setLooping(isLooping: boolean): void {
+        this.looping = isLooping;
+        this.publisher.notifySubs(BeatEvents.DisplayTypeChanged);
     }
 
     addSubscriber(subscriber: ISubscriber, eventType: BeatEvents | "all"): { unbind: () => void } {
@@ -43,6 +66,7 @@ export default class Beat implements IPublisher<BeatEvents>{
     setTimeSignature(timeSig: {up?: number, down?: number}): void {
         if (timeSig.up && Beat.isValidTimeSigRange(timeSig.up)) {
             this.timeSigUp = timeSig.up | 0;
+            this.loopLength = this.timeSigUp * this.barCount;
         }
         if (timeSig.down && Beat.isValidTimeSigRange(timeSig.down)) {
             this.timeSigDown = timeSig.down | 0;
@@ -51,17 +75,20 @@ export default class Beat implements IPublisher<BeatEvents>{
         this.publisher.notifySubs(BeatEvents.NewTimeSig);
     }
 
-    setBars(barCount: number): void {
-        const isPosInt = (barCount > 0 && (barCount | 0) === barCount);
-        if (!isPosInt || barCount == this.barCount) {
+    setBarCount(barCount: number): void {
+        if (!isPosInt(barCount) || barCount == this.barCount) {
             return;
         }
         this.barCount = barCount;
+        this.loopLength = this.timeSigUp * this.barCount;
         this.updateBeatUnitLength();
         this.publisher.notifySubs(BeatEvents.NewBarCount);
     }
 
     getUnitByIndex(index: number): BeatUnit | null {
+        if (this.looping) {
+            return this.unitRecord[index % this.loopLength];
+        }
         return this.unitRecord[index] ?? null;
     }
 
@@ -86,7 +113,7 @@ export default class Beat implements IPublisher<BeatEvents>{
     }
 
     turnUnitOn(index: number): void {
-        if (Math.abs(index | 0) !== index) {
+        if (!isPosInt(index)) {
             return;
         }
         const unit = this.getUnit(index);
@@ -97,7 +124,7 @@ export default class Beat implements IPublisher<BeatEvents>{
     }
 
     turnUnitOff(index: number): void {
-        if (Math.abs(index | 0) !== index) {
+        if (!isPosInt(index)) {
             return;
         }
         const unit = this.getUnit(index);
@@ -109,7 +136,7 @@ export default class Beat implements IPublisher<BeatEvents>{
 
 
     toggleUnit(index: number): void {
-        if (Math.abs(index | 0) !== index) {
+        if (!isPosInt(index)) {
             return;
         }
         const unit = this.getUnit(index);
@@ -120,7 +147,7 @@ export default class Beat implements IPublisher<BeatEvents>{
     }
 
     setUnitType(index: number, type: BeatUnitType): void {
-        if (Math.abs(index | 0) !== index) {
+        if (!isPosInt(index)) {
             return;
         }
         this.getUnit(index).setType(type);
@@ -161,5 +188,13 @@ export default class Beat implements IPublisher<BeatEvents>{
 
     getName(): string {
         return this.name;
+    }
+
+    isLooping(): boolean {
+        return this.looping;
+    }
+
+    getLoopLength(): number {
+        return this.loopLength;
     }
 }

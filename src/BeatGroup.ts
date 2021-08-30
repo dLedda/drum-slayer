@@ -1,9 +1,15 @@
-import Beat, {BeatInitOptions} from "./Beat";
+import Beat, {BeatEvents, BeatInitOptions} from "./Beat";
 import {IPublisher, Publisher} from "./Publisher";
 import ISubscriber from "./Subscriber";
+import BeatLike from "./BeatLike";
+import {isPosInt} from "./utils";
 
 type BeatGroupInitOptions = {
+    barCount: number;
+    isLooping: boolean;
+    timeSigUp: number;
     beats: BeatInitOptions[],
+    loopLength?: number,
 }
 
 export const enum BeatGroupEvents {
@@ -13,12 +19,14 @@ export const enum BeatGroupEvents {
     GlobalTimeSigUpChanged,
 }
 
-export default class BeatGroup implements IPublisher<BeatGroupEvents> {
+export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvents>, BeatLike {
     private beats: Beat[] = [];
     private beatKeyMap: Record<string, number> = {};
-    private publisher: Publisher<BeatGroupEvents> = new Publisher<BeatGroupEvents>();
-    private lastGlobalBarCount: number;
-    private lastGlobalTimeSigUp: number;
+    private publisher: Publisher<BeatGroupEvents | BeatEvents> = new Publisher<BeatGroupEvents | BeatEvents>();
+    private globalBarCount: number;
+    private globalTimeSigUp: number;
+    private globalLoopLength: number;
+    private globalIsLooping: boolean;
 
     constructor(options?: BeatGroupInitOptions) {
         if (options?.beats) {
@@ -27,34 +35,64 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents> {
                 this.beats.push(newBeat);
                 this.beatKeyMap[newBeat.getKey()] = this.beats.length - 1;
             }
-            this.lastGlobalBarCount = this.beats[0].getBarCount();
-            this.lastGlobalTimeSigUp = this.beats[0].getTimeSigUp();
-        } else {
-            this.lastGlobalBarCount = 4;
-            this.lastGlobalTimeSigUp = 4;
         }
+        this.globalBarCount = options?.barCount ?? 4;
+        this.globalTimeSigUp = options?.timeSigUp ?? 4;
+        this.globalLoopLength = options?.loopLength ?? this.globalBarCount * this.globalTimeSigUp;
+        this.globalIsLooping = options?.isLooping ?? false;
     }
 
-    addSubscriber(subscriber: ISubscriber, eventType: "all" | BeatGroupEvents | BeatGroupEvents[]): { unbind: () => void } {
+    addSubscriber(subscriber: ISubscriber, eventType: "all" | BeatGroupEvents | BeatEvents | (BeatGroupEvents | BeatEvents)[]): { unbind: () => void } {
         return this.publisher.addSubscriber(subscriber, eventType);
     }
 
-    setGlobalBarCount(barCount: number): void {
+    setBarCount(barCount: number): void {
         if (barCount <= 0 || (barCount | 0) !== barCount) {
             return;
         }
-        this.lastGlobalBarCount = barCount;
+        this.globalBarCount = barCount;
         for (const beat of this.beats) {
-            beat.setBars(barCount);
+            beat.setBarCount(barCount);
         }
         this.publisher.notifySubs(BeatGroupEvents.GlobalBarCountChanged);
+    }
+
+    getBarCount(): number {
+        return this.globalBarCount;
+    }
+
+    setLoopLength(loopLength: number): void {
+        if (!isPosInt(loopLength)) {
+            return;
+        }
+        this.globalLoopLength = loopLength;
+        for (const beat of this.beats) {
+            beat.setLoopLength(loopLength);
+        }
+        this.publisher.notifySubs(BeatEvents.LoopLengthChanged);
+    }
+
+    getLoopLength(): number {
+        return this.globalLoopLength;
+    }
+
+    setLooping(isLooping: boolean): void {
+        this.globalIsLooping = isLooping;
+        for (const beat of this.beats) {
+            beat.setLooping(isLooping);
+        }
+        this.publisher.notifySubs(BeatEvents.DisplayTypeChanged);
+    }
+
+    isLooping(): boolean {
+        return this.globalIsLooping;
     }
 
     setGlobalTimeSigUp(timeSigUp: number): void {
         if (!Beat.isValidTimeSigRange(timeSigUp)) {
             return;
         }
-        this.lastGlobalTimeSigUp = timeSigUp;
+        this.globalTimeSigUp = timeSigUp;
         for (const beat of this.beats) {
             beat.setTimeSignature({up: timeSigUp});
         }

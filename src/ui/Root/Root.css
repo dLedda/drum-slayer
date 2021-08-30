@@ -1,12 +1,17 @@
 .root {
-    margin: auto;
-    width: 80%;
+    margin-left: 10em;
+    margin-right: 10em;
 }
 
 .root .title {
     text-align: center;
 }
 
-.root input {
+.root input[type="number"] {
     width: 5em;
+}
+
+* {
+    user-drag: none;
+    user-select: none;
 }

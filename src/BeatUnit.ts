@@ -40,12 +40,12 @@ export default class BeatUnit implements IPublisher<BeatUnitEvents> {
 
     setOn(on: boolean): void {
         this.on = on;
-        this.publisher.notifySubs(BeatUnitEvents.On);
+        this.publisher.notifySubs(this.on ? BeatUnitEvents.On : BeatUnitEvents.Off);
     }
 
     setType(type: BeatUnitType): void {
         this.type = type;
-        this.publisher.notifySubs(BeatUnitEvents.Off);
+        this.publisher.notifySubs(BeatUnitEvents.TypeChange);
     }
 
     getType(): BeatUnitType {

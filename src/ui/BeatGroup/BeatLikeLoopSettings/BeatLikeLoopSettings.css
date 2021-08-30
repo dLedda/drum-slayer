@@ -1,0 +1,17 @@
+.loop-settings-option-group {
+    margin-top: 1em;
+}
+
+.loop-settings-option > label {
+    width: 5em;
+    text-align: left;
+}
+
+.loop-settings > p {
+    margin: 0;
+    text-align: center;
+}
+
+.loop-settings-option {
+    display: flex;
+}

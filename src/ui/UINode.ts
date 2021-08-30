@@ -12,20 +12,33 @@ type IRenderAttributes<
 
 export default abstract class UINode {
     protected node: HTMLElement | null = null;
-    protected parent: HTMLElement | null = null;
 
     constructor(options: UINodeOptions) {}
 
-    render(): void {
-        const oldNode = this.node;
-        this.node = this.rebuild();
-        if (oldNode) {
-            if (!this.parent) {
-                this.parent = oldNode.parentElement;
-            }
-            this.parent!.replaceChild(this.node, oldNode);
+    render(): HTMLElement {
+        if (!this.node) {
+            this.node = this.rebuild();
+        }
+        return this.node;
+    }
+
+    protected getNode(): HTMLElement {
+        if (!this.node) {
+            return this.render();
         } else {
-            this.parent!.appendChild(this.node);
+            return this.node;
+        }
+    }
+
+    redraw(): void {
+        const oldNode = this.node;
+        this.render();
+        if (!oldNode || !this.node) {
+            return;
+        }
+        const parent = this.node.parentElement;
+        if (parent) {
+            parent.replaceChild(oldNode, this.node);
         }
     }
 
