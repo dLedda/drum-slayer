@@ -6,6 +6,8 @@ import ISubscriber from "../../../Subscriber";
 import BeatUnitView from "./BeatUnit/BeatUnitView";
 import "./Beat.css";
 
+//some comment
+
 export type BeatUINodeOptions = UINodeOptions & {
     beat: Beat,
 };
