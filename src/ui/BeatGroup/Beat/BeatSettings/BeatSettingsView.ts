@@ -3,7 +3,6 @@ import Beat, {BeatEvents} from "../../../../Beat";
 import {IPublisher} from "../../../../Publisher";
 import ISubscriber from "../../../../Subscriber";
 import "./BeatSettings.css";
-import BeatLike from "../../../../BeatLike";
 import BeatLikeLoopSettingsView from "../../BeatLikeLoopSettings/BeatLikeLoopSettingsView";
 
 export type BeatSettingsViewUINodeOptions = UINodeOptions & {

@@ -21,7 +21,10 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
     }
 
     private setupBindings() {
-        this.beatLike.addSubscriber(this, "all");
+        this.beatLike.addSubscriber(this, [
+            BeatEvents.LoopLengthChanged,
+            BeatEvents.DisplayTypeChanged
+        ]);
     }
 
     notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {

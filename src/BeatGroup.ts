@@ -10,23 +10,28 @@ type BeatGroupInitOptions = {
     timeSigUp: number;
     beats: BeatInitOptions[],
     loopLength?: number,
+    forceFullBars?: boolean,
+    useAutoBeatLength?: boolean,
 }
 
 export const enum BeatGroupEvents {
-    BeatOrderChanged,
-    BeatListChanged,
-    GlobalBarCountChanged,
-    GlobalTimeSigUpChanged,
+    BeatOrderChanged="BGE0",
+    BeatListChanged="BGE1",
+    BarCountChanged="BGE2",
+    TimeSigUpChanged="BGE3",
+    AutoBeatSettingsChanged="BGE4",
 }
 
-export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvents>, BeatLike {
+export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvents>, BeatLike, ISubscriber {
     private beats: Beat[] = [];
     private beatKeyMap: Record<string, number> = {};
     private publisher: Publisher<BeatGroupEvents | BeatEvents> = new Publisher<BeatGroupEvents | BeatEvents>();
-    private globalBarCount: number;
-    private globalTimeSigUp: number;
+    private barCount: number;
+    private timeSigUp: number;
     private globalLoopLength: number;
     private globalIsLooping: boolean;
+    private forceFullBars: boolean;
+    private useAutoBeatLength: boolean;
 
     constructor(options?: BeatGroupInitOptions) {
         if (options?.beats) {
@@ -36,10 +41,18 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
                 this.beatKeyMap[newBeat.getKey()] = this.beats.length - 1;
             }
         }
-        this.globalBarCount = options?.barCount ?? 4;
-        this.globalTimeSigUp = options?.timeSigUp ?? 4;
-        this.globalLoopLength = options?.loopLength ?? this.globalBarCount * this.globalTimeSigUp;
+        this.barCount = options?.barCount ?? 4;
+        this.timeSigUp = options?.timeSigUp ?? 4;
+        this.globalLoopLength = options?.loopLength ?? this.barCount * this.timeSigUp;
         this.globalIsLooping = options?.isLooping ?? false;
+        this.useAutoBeatLength = options?.useAutoBeatLength ?? false;
+        this.forceFullBars = options?.forceFullBars ?? true;
+    }
+
+    notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
+        if (event === BeatEvents.LoopLengthChanged) {
+            this.autoBeatLength();
+        }
     }
 
     addSubscriber(subscriber: ISubscriber, eventType: "all" | BeatGroupEvents | BeatEvents | (BeatGroupEvents | BeatEvents)[]): { unbind: () => void } {
@@ -47,18 +60,18 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
     }
 
     setBarCount(barCount: number): void {
-        if (barCount <= 0 || (barCount | 0) !== barCount) {
-            return;
+        if (!isPosInt(barCount)) {
+            barCount = this.barCount;
         }
-        this.globalBarCount = barCount;
+        this.barCount = barCount;
         for (const beat of this.beats) {
             beat.setBarCount(barCount);
         }
-        this.publisher.notifySubs(BeatGroupEvents.GlobalBarCountChanged);
+        this.publisher.notifySubs(BeatGroupEvents.BarCountChanged);
     }
 
     getBarCount(): number {
-        return this.globalBarCount;
+        return this.barCount;
     }
 
     setLoopLength(loopLength: number): void {
@@ -81,6 +94,9 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
         for (const beat of this.beats) {
             beat.setLooping(isLooping);
         }
+        if (isLooping) {
+            this.autoBeatLength();
+        }
         this.publisher.notifySubs(BeatEvents.DisplayTypeChanged);
     }
 
@@ -88,15 +104,39 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
         return this.globalIsLooping;
     }
 
-    setGlobalTimeSigUp(timeSigUp: number): void {
-        if (!Beat.isValidTimeSigRange(timeSigUp)) {
-            return;
+    private findSmallestLoopLength(): number {
+        const loopLengths = [];
+        const denominators = [];
+        for (const beat of this.beats) {
+            loopLengths.push(beat.getLoopLength());
         }
-        this.globalTimeSigUp = timeSigUp;
+        if (this.forceFullBars) {
+            loopLengths.push(this.timeSigUp);
+        }
+        for (let i = 0; i < loopLengths.length; i++) {
+            let isFactor = false;
+            for (let j = 0; j < loopLengths.length; j++) {
+                if (j !== i && loopLengths[j] % loopLengths[i] === 0 && loopLengths[j] !== loopLengths[i]) {
+                    isFactor = true;
+                    break;
+                }
+            }
+            if (!isFactor && denominators.indexOf(loopLengths[i]) === -1) {
+                denominators.push(loopLengths[i]);
+            }
+        }
+        return denominators.reduce((prev, curr) => prev * curr, 1);
+    }
+
+    setTimeSigUp(timeSigUp: number): void {
+        if (!Beat.isValidTimeSigRange(timeSigUp)) {
+            timeSigUp = this.timeSigUp;
+        }
+        this.timeSigUp = timeSigUp;
         for (const beat of this.beats) {
             beat.setTimeSignature({up: timeSigUp});
         }
-        this.publisher.notifySubs(BeatGroupEvents.GlobalTimeSigUpChanged);
+        this.publisher.notifySubs(BeatGroupEvents.TimeSigUpChanged);
     }
 
     getBeatByKey(beatKey: string): Beat {
@@ -165,6 +205,7 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
         const newBeat = new Beat(options);
         this.beats.push(newBeat);
         this.beatKeyMap[newBeat.getKey()] = this.beats.length;
+        newBeat.addSubscriber(this, [BeatEvents.LoopLengthChanged]);
         this.publisher.notifySubs(BeatGroupEvents.BeatListChanged);
         return newBeat;
     }
@@ -178,5 +219,31 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
     setBeatName(beatKey: string, newName: string): void {
         this.getBeatByKey(beatKey).setName(newName);
         this.publisher.notifySubs(BeatGroupEvents.BeatOrderChanged);
+    }
+
+    autoBeatLengthOn(): boolean {
+        return this.useAutoBeatLength;
+    }
+
+    forcesFullBars(): boolean {
+        return this.forceFullBars;
+    }
+
+    private autoBeatLength(): void {
+        if (this.useAutoBeatLength && this.globalIsLooping) {
+            this.setBarCount(this.findSmallestLoopLength() / this.timeSigUp);
+        }
+    }
+
+    setIsUsingAutoBeatLength(isOn: boolean): void {
+        this.useAutoBeatLength = isOn;
+        this.autoBeatLength();
+        this.publisher.notifySubs(BeatGroupEvents.AutoBeatSettingsChanged);
+    }
+
+    setForcesFullBars(force: boolean): void {
+        this.forceFullBars = force;
+        this.autoBeatLength();
+        this.publisher.notifySubs(BeatGroupEvents.AutoBeatSettingsChanged);
     }
 }

@@ -18,8 +18,8 @@ export default class BeatView extends UINode implements ISubscriber {
     private beatUnitViews: BeatUnitView[] = [];
     private beatUnitViewBlock: HTMLElement | null = null;
     private lastHoveredBeatUnitView: BeatUnitView | null = null;
-    private static deselectingUnits = false;
-    private static selectingUnits = false;
+    static deselectingUnits = false;
+    static selectingUnits = false;
 
     constructor(options: BeatUINodeOptions) {
         super(options);
@@ -68,11 +68,6 @@ export default class BeatView extends UINode implements ISubscriber {
                     view = new BeatUnitView({beatUnit});
                     this.beatUnitViews.push(view);
                 }
-                view.onMouseDown((event: MouseEvent) => this.onBeatUnitClick(event.button, i));
-                window.addEventListener("mouseup", (event: MouseEvent) => {
-                    BeatView.selectingUnits = false;
-                    BeatView.deselectingUnits = false;
-                });
                 view.onHover(() => {
                     this.lastHoveredBeatUnitView = view;
                     if (BeatView.selectingUnits) {
@@ -81,6 +76,7 @@ export default class BeatView extends UINode implements ISubscriber {
                         this.lastHoveredBeatUnitView.turnOff();
                     }
                 });
+                view.onMouseDown((event: MouseEvent) => this.onBeatUnitClick(event.button, i));
             }
         }
     }
@@ -149,6 +145,9 @@ export default class BeatView extends UINode implements ISubscriber {
             classes: ["beat-title"],
         });
         this.setupBeatUnits();
+        if (!this.beatUnitViewBlock) {
+            throw new Error("Beat unit block setup failed!");
+        }
         this.settingsView = new BeatSettingsView({beat: this.beat});
         this.settingsToggleButton = UINode.make("div", {
             classes: ["beat-settings-btn"],
@@ -162,7 +161,7 @@ export default class BeatView extends UINode implements ISubscriber {
                     classes: ["beat-main"],
                     subs: [
                         this.title,
-                        this.beatUnitViewBlock!,
+                        this.beatUnitViewBlock,
                     ]
                 }),
                 this.settingsToggleButton,
@@ -175,3 +174,8 @@ export default class BeatView extends UINode implements ISubscriber {
         return this.node;
     }
 }
+
+window.addEventListener("mouseup", () => {
+    BeatView.selectingUnits = false;
+    BeatView.deselectingUnits = false;
+});
