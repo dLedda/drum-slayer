@@ -3,14 +3,12 @@ import BeatGroup from "./BeatGroup";
 import RootView from "./ui/Root/RootView";
 
 const defaultSettings = {
-    bars: 10,
-    timeSig: {
-        down: 4,
-        up: 4,
-    },
+    barCount: 2,
+    isLooping: false,
+    timeSigUp: 8,
 };
 
-const mainBeatGroup = new BeatGroup();
+const mainBeatGroup = new BeatGroup(defaultSettings);
 mainBeatGroup.addBeat({
     name: "LF"
 });

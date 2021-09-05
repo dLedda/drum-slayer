@@ -1,3 +1,4 @@
 .beat-group {
-
+    padding: 1em;
+    overflow-x: scroll;
 }

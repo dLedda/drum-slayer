@@ -8,11 +8,11 @@ type BeatGroupInitOptions = {
     barCount: number;
     isLooping: boolean;
     timeSigUp: number;
-    beats: BeatInitOptions[],
+    beats?: BeatInitOptions[],
     loopLength?: number,
     forceFullBars?: boolean,
     useAutoBeatLength?: boolean,
-}
+};
 
 export const enum BeatGroupEvents {
     BeatOrderChanged="BGE0",
@@ -206,6 +206,16 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
     }
 
     addBeat(options?: BeatInitOptions): Beat {
+        options = {
+            timeSig: {
+                up: this.timeSigUp,
+                down: 4,
+            },
+            bars: this.barCount,
+            isLooping: this.globalIsLooping,
+            loopLength: this.globalLoopLength,
+            ...options
+        };
         const newBeat = new Beat(options);
         this.beats.push(newBeat);
         this.beatKeyMap[newBeat.getKey()] = this.beats.length;

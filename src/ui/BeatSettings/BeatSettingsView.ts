@@ -13,9 +13,7 @@ export type BeatSettingsViewUINodeOptions = UINodeOptions & {
 export default class BeatSettingsView extends UINode implements ISubscriber {
     private beat: Beat;
     private visible = false;
-    private timeSigUp!: NumberInputView;
-    private timeSigDown!: NumberInputView;
-    private barCountInput!: NumberInputView;
+    private nameInput!: HTMLInputElement;
     private loopSettingsView!: BeatLikeLoopSettingsView;
 
     constructor(options: BeatSettingsViewUINodeOptions) {
@@ -29,11 +27,8 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
     }
 
     notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
-        if (event === BeatEvents.NewTimeSig) {
-            this.timeSigUp.setValue(this.beat.getTimeSigUp());
-            this.timeSigDown.setValue(this.beat.getTimeSigDown());
-        } else if (event === BeatEvents.NewBarCount) {
-            this.barCountInput.setValue(this.beat.getBarCount());
+        if (event === BeatEvents.NewName) {
+            this.nameInput.value = this.beat.getName();
         }
     }
 
@@ -52,37 +47,15 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
 
     rebuild(): HTMLElement {
         this.loopSettingsView = new BeatLikeLoopSettingsView({beatLike: this.beat});
-        this.timeSigUp = new NumberInputView({
-            initialValue: this.beat.getTimeSigUp(),
-            setter: (value: number) => this.beat.setBarCount(value),
-            getter: () => this.beat.getBarCount(),
-        });
-        this.timeSigDown = new NumberInputView({
-            initialValue: this.beat.getTimeSigDown(),
-            setter: (value: number) => this.beat.setBarCount(value),
-            getter: () => this.beat.getBarCount(),
-        });
-        this.barCountInput = new NumberInputView({
-            label: "Bar Count:",
-            initialValue: this.beat.getBarCount(),
-            setter: (value: number) => this.beat.setBarCount(value),
-            getter: () => this.beat.getBarCount(),
+        this.nameInput = UINode.make("input", {
+            value: this.beat.getName(),
+            type: "text",
+            oninput: (event: Event) => this.beat.setName((event.target as HTMLInputElement).value),
         });
         this.node = UINode.make("div", {
             classes: ["beat-settings"],
             subs: [
-                UINode.make("div", {
-                    classes: ["beat-settings-time-sig", "beat-settings-option-group", "beat-settings-option"],
-                    subs: [
-                        UINode.make("label", {innerText: "Time Signature:"}),
-                        this.timeSigUp.render(),
-                        this.timeSigDown.render(),
-                    ]
-                }),
-                UINode.make("div", {
-                    classes: ["beat-settings-bar", "beat-settings-option-group", "beat-settings-option"],
-                    subs: [this.barCountInput.render()],
-                }),
+                this.nameInput,
                 this.loopSettingsView.render(),
             ],
         });

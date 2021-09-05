@@ -22,7 +22,6 @@ export default class BeatUnitView extends UINode implements ISubscriber {
         this.subscription.unbind();
         this.beatUnit = beatUnit;
         this.setupBindings();
-        this.rebuild();
         this.redraw();
     }
 

@@ -98,19 +98,23 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                     classes: ["beat-group-settings-options"],
                     subs: [
                         UINode.make("div", {
-                            classes: ["beat-group-settings-bar-count", "beat-group-settings-option"],
-                            subs: [
-                                this.barCountInput.render(),
-                            ],
-                        }),
-                        UINode.make("div", {
                             classes: ["beat-group-settings-boxes", "beat-group-settings-option"],
                             subs: [
                                 this.timeSigUpInput.render(),
                             ],
                         }),
+                        UINode.make("div", {
+                            classes: ["beat-group-settings-bar-count", "beat-group-settings-option"],
+                            subs: [
+                                this.barCountInput.render(),
+                            ],
+                        }),
                         this.loopSettingsView.render(),
                         this.autoBeatOptions,
+                        UINode.make("button", {
+                            innerText: "New Track",
+                            onclick: () => this.beatGroup.addBeat(),
+                        })
                     ],
                 }),
             ],

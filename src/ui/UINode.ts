@@ -32,13 +32,13 @@ export default abstract class UINode {
 
     redraw(): void {
         const oldNode = this.node;
-        this.render();
         if (!oldNode || !this.node) {
             return;
         }
         const parent = this.node.parentElement;
         if (parent) {
-            parent.replaceChild(oldNode, this.node);
+            this.node = this.rebuild();
+            parent.replaceChild(this.node, oldNode);
         }
     }
 
