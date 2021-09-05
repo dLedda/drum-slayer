@@ -73,6 +73,14 @@ export default class Beat implements IPublisher<BeatEvents>, BeatLike {
         this.publisher.notifySubs(BeatEvents.NewTimeSig);
     }
 
+    setTimeSigUp(timeSigUp: number): void {
+        this.setTimeSignature({up: timeSigUp});
+    }
+
+    setTimeSigDown(timeSigUp: number): void {
+        this.setTimeSignature({down: timeSigUp});
+    }
+
     setBarCount(barCount: number): void {
         if (!isPosInt(barCount) || barCount == this.barCount) {
             barCount = this.barCount;

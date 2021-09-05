@@ -1,7 +1,7 @@
 import UINode, {UINodeOptions} from "../UINode";
 import BeatGroup from "../../BeatGroup";
+import BeatGroupSettingsView from "../BeatGroupSettings/BeatGroupSettingsView";
 import BeatView from "./Beat/BeatView";
-import BeatGroupSettingsView from "./BeatGroupSettings/BeatGroupSettingsView";
 
 export type BeatGroupUINodeOptions = UINodeOptions & {
     title: string,

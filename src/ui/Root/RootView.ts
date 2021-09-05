@@ -24,7 +24,7 @@ export default class RootView extends UINode {
         return UINode.make("div", {
             classes: ["root"],
             subs: [
-                UINode.make("h1", {innerText: this.title, classes: ["title"]}),
+                UINode.make("h1", {innerText: this.title, classes: ["root-title"]}),
                 this.beatGroupView.render(),
             ],
         });

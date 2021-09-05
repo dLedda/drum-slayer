@@ -1,0 +1,35 @@
+input[type="number"].number-input-input {
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+    text-align: center;
+    width: 3em;
+    border-style: none;
+    border-width: 0;
+    border-radius: 0;
+    background-color: var(--color-ui-neutral-light);
+    color: var(--color-p-dark)
+}
+
+input[type="number"].number-input-input::-webkit-inner-spin-button,
+input[type="number"].number-input-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}
+
+.number-input-button {
+    border-width: 0;
+    background-color: var(--color-ui-neutral-dark);
+    color: var(--color-ui-neutral-light);
+    cursor: pointer;
+}
+
+.number-input-button:hover {
+    background-color: var(--color-ui-neutral-dark-hover);
+}
+
+.number-input-inc {
+    border-radius: 0 0.5em 0.5em 0;
+}
+
+.number-input-dec {
+    border-radius: 0.5em 0 0 0.5em;
+}

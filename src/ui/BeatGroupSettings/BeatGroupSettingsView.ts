@@ -1,11 +1,11 @@
-import BeatGroup from "../../../BeatGroup";
-import UINode, {UINodeOptions} from "../../UINode";
-import ISubscriber from "../../../Subscriber";
-import {IPublisher} from "../../../Publisher";
-import {BeatGroupEvents} from "../../../BeatGroup";
 import BeatLikeLoopSettingsView from "../BeatLikeLoopSettings/BeatLikeLoopSettingsView";
 import "./BeatGroupSettings.css";
-import {BeatEvents} from "../../../Beat";
+import UINode, {UINodeOptions} from "../UINode";
+import NumberInputView from "../Widgets/NumberInput/NumberInputView";
+import ISubscriber from "../../Subscriber";
+import BeatGroup, {BeatGroupEvents} from "../../BeatGroup";
+import {IPublisher} from "../../Publisher";
+import {BeatEvents} from "../../Beat";
 
 export type BeatGroupSettingsUINodeOptions = UINodeOptions & {
     beatGroup: BeatGroup,
@@ -13,8 +13,8 @@ export type BeatGroupSettingsUINodeOptions = UINodeOptions & {
 
 export default class BeatGroupSettingsView extends UINode implements ISubscriber {
     private beatGroup: BeatGroup;
-    private barCountInput!: HTMLInputElement;
-    private timeSigUpInput!: HTMLInputElement;
+    private barCountInput!: NumberInputView;
+    private timeSigUpInput!: NumberInputView;
     private loopSettingsView!: BeatLikeLoopSettingsView;
     private autoBeatLengthCheckbox!: HTMLInputElement;
     private forceFullBarsCheckbox!: HTMLInputElement;
@@ -32,9 +32,9 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
 
     notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
         if (event === BeatGroupEvents.BarCountChanged) {
-            this.barCountInput.valueAsNumber = this.beatGroup.getBeatByIndex(0).getBarCount();
+            this.barCountInput.setValue(this.beatGroup.getBarCount());
         } else if (event === BeatGroupEvents.TimeSigUpChanged) {
-            this.timeSigUpInput.valueAsNumber = this.beatGroup.getBeatByIndex(0).getTimeSigUp();
+            this.timeSigUpInput.setValue(this.beatGroup.getTimeSigUp());
         } else if (event === BeatEvents.DisplayTypeChanged) {
             if (this.beatGroup.isLooping()) {
                 this.autoBeatOptions.classList.add("visible");
@@ -46,19 +46,17 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
 
     rebuild(): HTMLElement {
         this.loopSettingsView = new BeatLikeLoopSettingsView({beatLike: this.beatGroup});
-        this.barCountInput = UINode.make("input", {
-            type: "number",
-            value: this.beatGroup.getBeatByIndex(0).getBarCount().toString(),
-            oninput: () => {
-                this.beatGroup.setBarCount(Number(this.barCountInput.value));
-            },
+        this.barCountInput = new NumberInputView({
+            label: "Bars:",
+            initialValue: this.beatGroup.getBarCount(),
+            setter: (input: number) => this.beatGroup.setBarCount(input),
+            getter: () => this.beatGroup.getBarCount(),
         });
-        this.timeSigUpInput = UINode.make("input", {
-            type: "number",
-            value: this.beatGroup.getBeatByIndex(0).getTimeSigUp().toString(),
-            oninput: () => {
-                this.beatGroup.setTimeSigUp(Number(this.timeSigUpInput.value));
-            },
+        this.timeSigUpInput = new NumberInputView({
+            label: "Boxes per bar:",
+            initialValue: this.beatGroup.getTimeSigUp(),
+            setter: (input: number) => this.beatGroup.setTimeSigUp(input),
+            getter: () => this.beatGroup.getTimeSigUp(),
         });
         this.autoBeatLengthCheckbox = UINode.make("input", {
             type: "checkbox",
@@ -101,15 +99,13 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                         UINode.make("div", {
                             classes: ["beat-group-settings-bar-count", "beat-group-settings-option"],
                             subs: [
-                                UINode.make("label", { innerText: "Bars:" }),
-                                this.barCountInput,
+                                this.barCountInput.render(),
                             ],
                         }),
                         UINode.make("div", {
                             classes: ["beat-group-settings-boxes", "beat-group-settings-option"],
                             subs: [
-                                UINode.make("label", { innerText: "Boxes per bar:" }),
-                                this.timeSigUpInput,
+                                this.timeSigUpInput.render(),
                             ],
                         }),
                         this.loopSettingsView.render(),

@@ -139,6 +139,10 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
         this.publisher.notifySubs(BeatGroupEvents.TimeSigUpChanged);
     }
 
+    getTimeSigUp(): number {
+        return this.timeSigUp;
+    }
+
     getBeatByKey(beatKey: string): Beat {
         if (typeof this.beatKeyMap[beatKey] === "undefined") {
             throw new Error(`Could not find the beat with key: ${beatKey}`);

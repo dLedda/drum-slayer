@@ -1,9 +1,10 @@
-import BeatLike from "../../../BeatLike";
-import UINode, {UINodeOptions} from "../../UINode";
-import ISubscriber from "../../../Subscriber";
-import {IPublisher} from "../../../Publisher";
-import {BeatEvents} from "../../../Beat";
 import "./BeatLikeLoopSettings.css";
+import BeatLike from "../../BeatLike";
+import NumberInputView from "../Widgets/NumberInput/NumberInputView";
+import ISubscriber from "../../Subscriber";
+import UINode, {UINodeOptions} from "../UINode";
+import {BeatEvents} from "../../Beat";
+import {IPublisher} from "../../Publisher";
 
 export type BeatLikeLoopSettingsViewUINodeOptions = UINodeOptions & {
     beatLike: BeatLike,
@@ -11,7 +12,7 @@ export type BeatLikeLoopSettingsViewUINodeOptions = UINodeOptions & {
 
 export default class BeatLikeLoopSettingsView extends UINode implements ISubscriber {
     private beatLike: BeatLike;
-    private loopLengthInput!: HTMLInputElement;
+    private loopLengthInput!: NumberInputView;
     private loopCheckbox!: HTMLInputElement;
 
     constructor(options: BeatLikeLoopSettingsViewUINodeOptions) {
@@ -29,20 +30,19 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
 
     notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
         if (event === BeatEvents.LoopLengthChanged) {
-            this.loopLengthInput.value = this.beatLike.getLoopLength().toString();
+            this.loopLengthInput.setValue(this.beatLike.getLoopLength());
         } else if (event === BeatEvents.DisplayTypeChanged) {
             this.loopCheckbox.checked = this.beatLike.isLooping();
         }
     }
 
     rebuild(): HTMLElement {
-        this.loopLengthInput = UINode.make("input", {
-            classes: ["loop-settings-loop-length"],
-            type: "number",
-            value: this.beatLike.getLoopLength().toString(),
-            oninput: (event: Event) => {
-                this.beatLike.setLoopLength(Number((event.target as HTMLInputElement).value));
-            },
+        this.loopLengthInput = new NumberInputView({
+            initialValue: this.beatLike.getLoopLength(),
+            label: "Length:",
+            onDecrement: () => this.beatLike.setLoopLength(this.beatLike.getLoopLength() - 1),
+            onIncrement: () => this.beatLike.setLoopLength(this.beatLike.getLoopLength() + 1),
+            onNewInput: (input: number) => this.beatLike.setLoopLength(input),
         });
         this.loopCheckbox = UINode.make("input", {
             classes: ["loop-settings-loop-toggle"],
@@ -62,8 +62,7 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
                         UINode.make("div", {
                             classes: ["loop-settings-option"],
                             subs: [
-                                UINode.make("label", {innerText: "Length:"}),
-                                this.loopLengthInput,
+                                this.loopLengthInput.render(),
                             ],
                         }),
                         UINode.make("div", {
