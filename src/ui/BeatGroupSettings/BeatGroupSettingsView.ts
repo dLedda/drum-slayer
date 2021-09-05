@@ -19,7 +19,8 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
     private timeSigUpInput!: NumberInputView;
     private loopSettingsView!: BeatLikeLoopSettingsView;
     private autoBeatLengthCheckbox!: BoolBoxView;
-    private forceFullBarsCheckbox!: BoolBoxView;
+    private beatSettingsViews: BeatSettingsView[] = [];
+    private beatSettingsContainer!: HTMLDivElement;
     private autoBeatOptions!: HTMLElement;
 
     constructor(options: BeatGroupSettingsUINodeOptions) {
@@ -29,6 +30,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             BeatGroupEvents.BarCountChanged,
             BeatGroupEvents.TimeSigUpChanged,
             BeatEvents.DisplayTypeChanged,
+            BeatGroupEvents.BeatListChanged,
         ]);
     }
 
@@ -43,6 +45,27 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             } else {
                 this.autoBeatOptions.classList.remove("visible");
             }
+        } else if (event === BeatGroupEvents.BeatListChanged) {
+            this.remakeBeatSettingsViews();
+        }
+    }
+
+    private remakeBeatSettingsViews() {
+        const beatCount = this.beatGroup.getBeatCount();
+        this.beatSettingsViews.splice(beatCount, this.beatSettingsViews.length - beatCount);
+        for (let i = 0; i < beatCount; i++) {
+            if (this.beatSettingsViews[i]) {
+                this.beatSettingsViews[i].setBeat(this.beatGroup.getBeatByIndex(i));
+            } else {
+                this.beatSettingsViews.push(new BeatSettingsView({ beat: this.beatGroup.getBeatByIndex(i) }));
+            }
+        }
+        if (!this.beatSettingsContainer) {
+            this.beatSettingsContainer = UINode.make("div", {
+                subs: this.beatSettingsViews.map(view => view.render())
+            });
+        } else {
+            this.beatSettingsContainer.replaceChildren(...this.beatSettingsViews.map(view => view.render()));
         }
     }
 
@@ -76,10 +99,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                 }),
             ]
         });
-        const beatSettingsViews = [];
-        for (let i = 0; i < this.beatGroup.getBeatCount(); i++) {
-            beatSettingsViews.push(new BeatSettingsView({ beat: this.beatGroup.getBeatByIndex(i) }));
-        }
+        this.remakeBeatSettingsViews();
         this.node = UINode.make("div", {
             classes: ["beat-group-settings"],
             subs: [
@@ -104,7 +124,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                             innerText: "New Track",
                             onclick: () => this.beatGroup.addBeat(),
                         }),
-                        ...beatSettingsViews.map(view => view.render()),
+                        this.beatSettingsContainer
                     ],
                 }),
             ],

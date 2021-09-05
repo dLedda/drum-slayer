@@ -24,3 +24,8 @@
 .beat-settings-time-sig input {
     margin: auto;
 }
+
+.beat-settings-name-field {
+    margin: auto auto auto auto;
+    width: 5em;
+}

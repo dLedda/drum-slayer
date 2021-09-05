@@ -11,7 +11,6 @@ export type BeatSettingsViewUINodeOptions = UINodeOptions & {
 
 export default class BeatSettingsView extends UINode implements ISubscriber {
     private beat: Beat;
-    private visible = false;
     private nameInput!: HTMLInputElement;
     private loopSettingsView!: BeatLikeLoopSettingsView;
 
@@ -25,7 +24,13 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         this.beat.addSubscriber(this, "all");
     }
 
-    notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
+    setBeat(beat: Beat): void {
+        this.beat = beat;
+        this.loopSettingsView.setBeatLike(beat);
+        this.notify(null, BeatEvents.NewName);
+    }
+
+    notify<T extends string | number>(publisher: IPublisher<T> | null, event: "all" | T[] | T): void {
         if (event === BeatEvents.NewName) {
             this.nameInput.value = this.beat.getName();
         }
@@ -35,6 +40,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         this.loopSettingsView = new BeatLikeLoopSettingsView({beatLike: this.beat});
         this.nameInput = UINode.make("input", {
             value: this.beat.getName(),
+            classes: ["beat-settings-name-field"],
             type: "text",
             oninput: (event: Event) => this.beat.setName((event.target as HTMLInputElement).value),
         });

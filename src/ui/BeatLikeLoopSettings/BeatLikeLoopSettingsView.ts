@@ -9,6 +9,7 @@ import BoolBoxView from "../Widgets/BoolBox/BoolBoxView";
 
 export type BeatLikeLoopSettingsViewUINodeOptions = UINodeOptions & {
     beatLike: BeatLike,
+    title?: string,
 };
 
 export default class BeatLikeLoopSettingsView extends UINode implements ISubscriber {
@@ -16,10 +17,12 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
     private loopLengthInput!: NumberInputView;
     private loopCheckbox!: BoolBoxView;
     private loopLengthSection!: HTMLDivElement;
+    private title: string;
 
     constructor(options: BeatLikeLoopSettingsViewUINodeOptions) {
         super(options);
         this.beatLike = options.beatLike;
+        this.title = options.title ?? "Looping settings:";
         this.setupBindings();
     }
 
@@ -30,7 +33,7 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
         ]);
     }
 
-    notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
+    notify<T extends string | number>(publisher: IPublisher<T> | null, event: "all" | T[] | T): void {
         if (event === BeatEvents.LoopLengthChanged) {
             this.loopLengthInput.setValue(this.beatLike.getLoopLength());
         } else if (event === BeatEvents.DisplayTypeChanged) {
@@ -41,6 +44,12 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
                 this.loopLengthSection.classList.add("hide");
             }
         }
+    }
+
+    setBeatLike(beatLike: BeatLike): void {
+        this.beatLike = beatLike;
+        this.notify(null, BeatEvents.LoopLengthChanged);
+        this.notify(null, BeatEvents.DisplayTypeChanged);
     }
 
     rebuild(): HTMLElement {
@@ -70,7 +79,7 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
         this.node = UINode.make("div", {
             classes: ["loop-settings"],
             subs: [
-                UINode.make("p", {innerText: "Global looping settings:"}),
+                UINode.make("p", {innerText: this.title}),
                 UINode.make("div", {
                     classes: ["loop-settings-option-group"],
                     subs: [
