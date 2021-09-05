@@ -1,3 +1,7 @@
+.number-input {
+    text-align: center;
+}
+
 input[type="number"].number-input-input {
     -webkit-appearance: textfield;
     -moz-appearance: textfield;

@@ -1,6 +1,5 @@
 import UINode, {UINodeOptions} from "../UINode";
 import BeatGroup from "../../BeatGroup";
-import BeatGroupSettingsView from "../BeatGroupSettings/BeatGroupSettingsView";
 import BeatView from "./Beat/BeatView";
 
 export type BeatGroupUINodeOptions = UINodeOptions & {
@@ -11,7 +10,6 @@ export type BeatGroupUINodeOptions = UINodeOptions & {
 export default class BeatGroupView extends UINode {
     private title: string;
     private beatGroup: BeatGroup;
-    private beatGroupSettingsView!: BeatGroupSettingsView;
     private beatViews: BeatView[] = [];
 
     constructor(options: BeatGroupUINodeOptions) {
@@ -25,12 +23,9 @@ export default class BeatGroupView extends UINode {
         for (let i = 0; i < this.beatGroup.getBeatCount(); i++) {
             this.beatViews.push(new BeatView({beat: this.beatGroup.getBeatByIndex(i)}));
         }
-        this.beatGroupSettingsView = new BeatGroupSettingsView({beatGroup: this.beatGroup});
         return UINode.make("div", {
             classes: ["beat-group"],
             subs: [
-                UINode.make("h3", {innerText: this.title}),
-                this.beatGroupSettingsView.render(),
                 ...this.beatViews.map(bv => bv.render())
             ],
         });

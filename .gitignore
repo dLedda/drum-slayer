@@ -1,3 +1,4 @@
 /node_modules
-/public/static
+/public/static/*.js
+/public/static/*.js.map
 .idea

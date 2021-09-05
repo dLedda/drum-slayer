@@ -2,9 +2,9 @@
     width: 2em;
     height: 2em;
     margin-right: 0.2em;
-    background-color: white;
+    background-color: var(--color-ui-neutral-dark);
     border-width: 0.1em 0.1em 0.1em 0.1em;
-    border-color: black;
+    border-color: var(--color-ui-neutral-dark);
     border-style: solid;
     display: inline-block;
     transition: background-color 150ms;
@@ -12,7 +12,8 @@
 }
 
 .beat-unit:hover {
-    background-color: #f1c3b6;
+    border-color: var(--color-ui-neutral-dark-hover);
+    background-color: var(--color-ui-neutral-dark-hover);
     transition: none;
 }
 
@@ -21,7 +22,8 @@
 }
 
 .beat-unit.beat-unit-on {
-    background-color: darksalmon;
+    background-color: var(--color-ui-accent-light);
+    border-color: var(--color-ui-neutral-light);
     transition: none;
 }
 

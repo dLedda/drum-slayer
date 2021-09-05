@@ -12,20 +12,37 @@
     --color-title-dark: #282828;
 }
 
-body {
-    background-color: var(--color-bg-dark);
-    color: var(--color-p-light);
-}
-
 .root {
-    background-color: var(--color-bg-light);
-    margin-left: 10em;
-    margin-right: 10em;
+    color: var(--color-p-light);
+    background-color: var(--color-bg-dark);
+    height: 100vh;
+    display: flex;
+    align-content: center;
 }
 
-.root-title {
+.root-settings {
+    background-color: var(--color-bg-light);
+    height: 100%;
+    width: 30em;
+    padding: 3em;
+    display: inline-block;
+}
+
+.root-settings .root-title {
     color: var(--color-title-light);
     text-align: center;
+}
+
+.root-beat-stage-container {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.root-beat-stage {
+    margin: auto;
 }
 
 input[type="checkbox"] {

@@ -76,12 +76,14 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             classes: ["beat-group-settings-option-group"],
             subs: [
                 UINode.make("div", {
+                    classes: ["beat-group-settings-autobeat-option", "beat-group-settings-option"],
                     subs: [
                         UINode.make("label", { innerText: "Auto beat length:"}),
                         this.autoBeatLengthCheckbox,
                     ],
                 }),
                 UINode.make("div", {
+                    classes: ["beat-group-settings-autobeat-option", "beat-group-settings-option"],
                     subs: [
                         UINode.make("label", { innerText: "Force full bars:"}),
                         this.forceFullBarsCheckbox,
@@ -92,7 +94,6 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
         this.node = UINode.make("div", {
             classes: ["beat-group-settings"],
             subs: [
-                UINode.make("div", { innerText: "Settings for beat" }),
                 UINode.make("div", {
                     classes: ["beat-group-settings-options"],
                     subs: [
