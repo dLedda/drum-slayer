@@ -4,7 +4,6 @@ import {IPublisher} from "../../../Publisher";
 import ISubscriber from "../../../Subscriber";
 import BeatUnitView from "./BeatUnit/BeatUnitView";
 import "./Beat.css";
-import BeatSettingsView from "../../BeatSettings/BeatSettingsView";
 
 export type BeatUINodeOptions = UINodeOptions & {
     beat: Beat,
@@ -13,8 +12,6 @@ export type BeatUINodeOptions = UINodeOptions & {
 export default class BeatView extends UINode implements ISubscriber {
     private beat: Beat;
     private title!: HTMLHeadingElement;
-    private settingsView!: BeatSettingsView;
-    private settingsToggleButton!: HTMLDivElement;
     private beatUnitViews: BeatUnitView[] = [];
     private beatUnitViewBlock: HTMLElement | null = null;
     private lastHoveredBeatUnitView: BeatUnitView | null = null;
@@ -42,15 +39,6 @@ export default class BeatView extends UINode implements ISubscriber {
             this.setupBeatUnits();
         } else if (event === BeatEvents.LoopLengthChanged) {
             this.setupBeatUnits();
-        }
-    }
-
-    private toggleSettings() {
-        this.settingsView.toggleVisible();
-        if (this.settingsView.isOpen()) {
-            this.settingsToggleButton.classList.add("active");
-        } else {
-            this.settingsToggleButton.classList.remove("active");
         }
     }
 
@@ -148,12 +136,6 @@ export default class BeatView extends UINode implements ISubscriber {
         if (!this.beatUnitViewBlock) {
             throw new Error("Beat unit block setup failed!");
         }
-        this.settingsView = new BeatSettingsView({beat: this.beat});
-        this.settingsToggleButton = UINode.make("div", {
-            classes: ["beat-settings-btn"],
-            innerText: "Settings",
-            onclick: () => this.toggleSettings()
-        });
         this.node = UINode.make("div", {
             classes: ["beat"],
             subs: [
@@ -163,11 +145,6 @@ export default class BeatView extends UINode implements ISubscriber {
                         this.title,
                         this.beatUnitViewBlock,
                     ]
-                }),
-                this.settingsToggleButton,
-                UINode.make("div", {
-                    classes: ["beat-settings-container"],
-                    subs: [this.settingsView.render()],
                 }),
             ],
         });

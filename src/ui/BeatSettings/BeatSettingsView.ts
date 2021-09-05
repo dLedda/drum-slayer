@@ -2,7 +2,6 @@ import "./BeatSettings.css";
 import Beat, {BeatEvents} from "../../Beat";
 import UINode, {UINodeOptions} from "../UINode";
 import ISubscriber from "../../Subscriber";
-import NumberInputView from "../Widgets/NumberInput/NumberInputView";
 import BeatLikeLoopSettingsView from "../BeatLikeLoopSettings/BeatLikeLoopSettingsView";
 import {IPublisher} from "../../Publisher";
 
@@ -30,19 +29,6 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         if (event === BeatEvents.NewName) {
             this.nameInput.value = this.beat.getName();
         }
-    }
-
-    toggleVisible(): void {
-        this.visible = !this.visible;
-        if (this.visible) {
-            this.node?.classList.add("visible");
-        } else {
-            this.node?.classList.remove("visible");
-        }
-    }
-
-    isOpen(): boolean {
-        return this.visible;
     }
 
     rebuild(): HTMLElement {

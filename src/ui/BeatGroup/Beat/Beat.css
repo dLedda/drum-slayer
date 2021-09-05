@@ -3,26 +3,6 @@
     padding-left: 1em;
 }
 
-.beat-settings-btn {
-    cursor: pointer;
-    line-height: 2em;
-    display: inline-block;
-    height: 2em;
-    border: 1px solid grey;
-    border-radius: 1em;
-    user-select: none;
-    transition: background-color 150ms;
-}
-
-.beat-settings-btn:hover {
-    background-color: #eaeaea;
-}
-
-.beat-settings-btn.active {
-    background-color: lightgrey;
-    transition: none;
-}
-
 .beat-unit-block {
     height: 2em;
 }

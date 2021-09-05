@@ -76,7 +76,7 @@ export default class NumberInputView extends UINode {
             type: "number",
             classes: ["number-input-input"],
             valueAsNumber: this.value,
-            oninput: (event: Event) => {
+            onblur: (event: Event) => {
                 const input = (event.target as HTMLInputElement).valueAsNumber;
                 if (!isNaN(input)) {
                     if (this.onNewInput) {

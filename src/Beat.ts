@@ -36,7 +36,7 @@ export default class Beat implements IPublisher<BeatEvents>, BeatLike {
     private looping: boolean;
 
     constructor(options?: BeatInitOptions) {
-        this.key = `Beat-${Beat.count}`;
+        this.key = `B-${Beat.count}`;
         this.name = options?.name ?? this.key;
         this.setTimeSignature({up: options?.timeSig?.up ?? 4, down: options?.timeSig?.down ?? 4});
         this.setBarCount(options?.bars ?? 4);

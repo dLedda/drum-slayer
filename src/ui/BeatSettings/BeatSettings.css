@@ -1,13 +1,8 @@
 .beat-settings {
     padding: 1em;
-    display: none;
-    text-align: center;
-    width: 40em;
-    justify-content: space-evenly;
-}
-
-.beat-settings.visible {
     display: inline-flex;
+    text-align: center;
+    justify-content: space-evenly;
 }
 
 .beat-settings-time-sig-up {

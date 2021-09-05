@@ -6,6 +6,8 @@ import ISubscriber from "../../Subscriber";
 import BeatGroup, {BeatGroupEvents} from "../../BeatGroup";
 import {IPublisher} from "../../Publisher";
 import {BeatEvents} from "../../Beat";
+import BoolBoxView from "../Widgets/BoolBox/BoolBoxView";
+import BeatSettingsView from "../BeatSettings/BeatSettingsView";
 
 export type BeatGroupSettingsUINodeOptions = UINodeOptions & {
     beatGroup: BeatGroup,
@@ -16,8 +18,8 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
     private barCountInput!: NumberInputView;
     private timeSigUpInput!: NumberInputView;
     private loopSettingsView!: BeatLikeLoopSettingsView;
-    private autoBeatLengthCheckbox!: HTMLInputElement;
-    private forceFullBarsCheckbox!: HTMLInputElement;
+    private autoBeatLengthCheckbox!: BoolBoxView;
+    private forceFullBarsCheckbox!: BoolBoxView;
     private autoBeatOptions!: HTMLElement;
 
     constructor(options: BeatGroupSettingsUINodeOptions) {
@@ -58,19 +60,10 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             setter: (input: number) => this.beatGroup.setTimeSigUp(input),
             getter: () => this.beatGroup.getTimeSigUp(),
         });
-        this.autoBeatLengthCheckbox = UINode.make("input", {
-            type: "checkbox",
-            checked: this.beatGroup.autoBeatLengthOn(),
-            oninput: () => {
-                this.beatGroup.setIsUsingAutoBeatLength(this.autoBeatLengthCheckbox.checked);
-            },
-        });
-        this.forceFullBarsCheckbox = UINode.make("input", {
-            type: "checkbox",
-            checked: this.beatGroup.forcesFullBars(),
-            oninput: () => {
-                this.beatGroup.setForcesFullBars(this.forceFullBarsCheckbox.checked);
-            },
+        this.autoBeatLengthCheckbox = new BoolBoxView({
+            label: "Auto beat length:",
+            value: this.beatGroup.autoBeatLengthOn(),
+            onInput: (isChecked: boolean) => this.beatGroup.setIsUsingAutoBeatLength(isChecked),
         });
         this.autoBeatOptions = UINode.make("div", {
             classes: ["beat-group-settings-option-group"],
@@ -78,19 +71,15 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                 UINode.make("div", {
                     classes: ["beat-group-settings-autobeat-option", "beat-group-settings-option"],
                     subs: [
-                        UINode.make("label", { innerText: "Auto beat length:"}),
-                        this.autoBeatLengthCheckbox,
-                    ],
-                }),
-                UINode.make("div", {
-                    classes: ["beat-group-settings-autobeat-option", "beat-group-settings-option"],
-                    subs: [
-                        UINode.make("label", { innerText: "Force full bars:"}),
-                        this.forceFullBarsCheckbox,
+                        this.autoBeatLengthCheckbox.render(),
                     ],
                 }),
             ]
         });
+        const beatSettingsViews = [];
+        for (let i = 0; i < this.beatGroup.getBeatCount(); i++) {
+            beatSettingsViews.push(new BeatSettingsView({ beat: this.beatGroup.getBeatByIndex(i) }));
+        }
         this.node = UINode.make("div", {
             classes: ["beat-group-settings"],
             subs: [
@@ -114,7 +103,8 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                         UINode.make("button", {
                             innerText: "New Track",
                             onclick: () => this.beatGroup.addBeat(),
-                        })
+                        }),
+                        ...beatSettingsViews.map(view => view.render()),
                     ],
                 }),
             ],

@@ -5,6 +5,7 @@ import ISubscriber from "../../Subscriber";
 import UINode, {UINodeOptions} from "../UINode";
 import {BeatEvents} from "../../Beat";
 import {IPublisher} from "../../Publisher";
+import BoolBoxView from "../Widgets/BoolBox/BoolBoxView";
 
 export type BeatLikeLoopSettingsViewUINodeOptions = UINodeOptions & {
     beatLike: BeatLike,
@@ -13,7 +14,8 @@ export type BeatLikeLoopSettingsViewUINodeOptions = UINodeOptions & {
 export default class BeatLikeLoopSettingsView extends UINode implements ISubscriber {
     private beatLike: BeatLike;
     private loopLengthInput!: NumberInputView;
-    private loopCheckbox!: HTMLInputElement;
+    private loopCheckbox!: BoolBoxView;
+    private loopLengthSection!: HTMLDivElement;
 
     constructor(options: BeatLikeLoopSettingsViewUINodeOptions) {
         super(options);
@@ -32,7 +34,12 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
         if (event === BeatEvents.LoopLengthChanged) {
             this.loopLengthInput.setValue(this.beatLike.getLoopLength());
         } else if (event === BeatEvents.DisplayTypeChanged) {
-            this.loopCheckbox.checked = this.beatLike.isLooping();
+            this.loopCheckbox.setValue(this.beatLike.isLooping());
+            if (this.beatLike.isLooping()) {
+                this.loopLengthSection.classList.remove("hide");
+            } else {
+                this.loopLengthSection.classList.add("hide");
+            }
         }
     }
 
@@ -44,34 +51,36 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
             onIncrement: () => this.beatLike.setLoopLength(this.beatLike.getLoopLength() + 1),
             onNewInput: (input: number) => this.beatLike.setLoopLength(input),
         });
-        this.loopCheckbox = UINode.make("input", {
-            classes: ["loop-settings-loop-toggle"],
-            type: "checkbox",
-            checked: this.beatLike.isLooping(),
-            oninput: (event: Event) => {
-                this.beatLike.setLooping((event.target as HTMLInputElement).checked);
-            },
+        this.loopCheckbox = new BoolBoxView({
+            label: "On:",
+            value: this.beatLike.isLooping(),
+            onInput: (isChecked: boolean) => this.beatLike.setLooping(isChecked),
         });
+        this.loopLengthSection = UINode.make("div", {
+            classes: ["loop-settings-option"],
+            subs: [
+                this.loopLengthInput.render(),
+            ],
+        });
+        if (this.beatLike.isLooping()) {
+            this.loopLengthSection.classList.remove("hide");
+        } else {
+            this.loopLengthSection.classList.add("hide");
+        }
         this.node = UINode.make("div", {
             classes: ["loop-settings"],
             subs: [
-                UINode.make("p", {innerText: "Looping:"}),
+                UINode.make("p", {innerText: "Global looping settings:"}),
                 UINode.make("div", {
                     classes: ["loop-settings-option-group"],
                     subs: [
                         UINode.make("div", {
                             classes: ["loop-settings-option"],
                             subs: [
-                                this.loopLengthInput.render(),
+                                this.loopCheckbox.render(),
                             ],
                         }),
-                        UINode.make("div", {
-                            classes: ["loop-settings-option"],
-                            subs: [
-                                UINode.make("label", {innerText: "On:"}),
-                                this.loopCheckbox,
-                            ],
-                        }),
+                        this.loopLengthSection,
                     ],
                 }),
             ]
