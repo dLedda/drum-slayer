@@ -21,6 +21,7 @@ export const enum BeatEvents {
     NewName="BE2",
     DisplayTypeChanged="BE3",
     LoopLengthChanged="BE4",
+    WantsRemoval="BE5",
 }
 
 export default class Beat implements IPublisher<BeatEvents>, BeatLike {
@@ -31,7 +32,7 @@ export default class Beat implements IPublisher<BeatEvents>, BeatLike {
     private timeSigDown = 4;
     private readonly unitRecord: BeatUnit[] = [];
     private barCount = 1;
-    private publisher = new Publisher<BeatEvents>();
+    private publisher = new Publisher<BeatEvents, Beat>(this);
     private loopLength: number;
     private looping: boolean;
 
@@ -144,5 +145,9 @@ export default class Beat implements IPublisher<BeatEvents>, BeatLike {
 
     getLoopLength(): number {
         return this.loopLength;
+    }
+
+    delete(): void {
+        this.publisher.notifySubs(BeatEvents.WantsRemoval);
     }
 }

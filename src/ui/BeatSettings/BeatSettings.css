@@ -1,8 +1,17 @@
 .beat-settings {
-    padding: 1em;
-    display: inline-flex;
+    margin-bottom: 0.5em;
+    display: flex;
+    height: 3.5em;
     text-align: center;
-    justify-content: space-evenly;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.beat-settings > * {
+    margin-right: 0.2em;
+}
+.beat-settings:last-child {
+    margin-right: 0;
 }
 
 .beat-settings-time-sig-up {
@@ -26,6 +35,19 @@
 }
 
 .beat-settings-name-field {
-    margin: auto auto auto auto;
     width: 5em;
+}
+
+.beat-settings .loop-settings {
+    text-align: left;
+    flex: auto;
+}
+
+.beat-settings .loop-settings-option.hide {
+    display: none;
+}
+
+.beat-settings .loop-settings-option {
+    flex: auto;
+    padding-right: 1em;
 }

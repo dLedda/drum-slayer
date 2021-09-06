@@ -1,7 +1,7 @@
 .beat-unit {
     width: 2em;
     height: 2em;
-    margin-right: 0.2em;
+    margin-right: 4px;
     background-color: var(--color-ui-neutral-dark);
     border-width: 0.1em 0.1em 0.1em 0.1em;
     border-color: var(--color-ui-neutral-dark);

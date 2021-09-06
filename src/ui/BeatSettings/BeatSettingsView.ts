@@ -4,6 +4,9 @@ import UINode, {UINodeOptions} from "../UINode";
 import ISubscriber from "../../Subscriber";
 import BeatLikeLoopSettingsView from "../BeatLikeLoopSettings/BeatLikeLoopSettingsView";
 import {IPublisher} from "../../Publisher";
+import BeatLike from "../../BeatLike";
+import NumberInputView from "../Widgets/NumberInput/NumberInputView";
+import BoolBoxView from "../Widgets/BoolBox/BoolBoxView";
 
 export type BeatSettingsViewUINodeOptions = UINodeOptions & {
     beat: Beat,
@@ -12,7 +15,11 @@ export type BeatSettingsViewUINodeOptions = UINodeOptions & {
 export default class BeatSettingsView extends UINode implements ISubscriber {
     private beat: Beat;
     private nameInput!: HTMLInputElement;
-    private loopSettingsView!: BeatLikeLoopSettingsView;
+    private deleteButton!: HTMLButtonElement;
+    private loopLengthInput!: NumberInputView;
+    private loopCheckbox!: BoolBoxView;
+    private loopLengthSection!: HTMLDivElement;
+    private sub!: { unbind: () => void };
 
     constructor(options: BeatSettingsViewUINodeOptions) {
         super(options);
@@ -21,34 +28,79 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
     }
 
     private setupBindings() {
-        this.beat.addSubscriber(this, "all");
+        this.sub = this.beat.addSubscriber(this, "all");
     }
 
     setBeat(beat: Beat): void {
+        this.sub.unbind();
         this.beat = beat;
-        this.loopSettingsView.setBeatLike(beat);
+        this.setupBindings();
         this.notify(null, BeatEvents.NewName);
+        this.notify(null, BeatEvents.LoopLengthChanged);
+        this.notify(null, BeatEvents.DisplayTypeChanged);
     }
 
     notify<T extends string | number>(publisher: IPublisher<T> | null, event: "all" | T[] | T): void {
         if (event === BeatEvents.NewName) {
             this.nameInput.value = this.beat.getName();
+        } else if (event === BeatEvents.LoopLengthChanged) {
+            this.loopLengthInput.setValue(this.beat.getLoopLength());
+        } else if (event === BeatEvents.DisplayTypeChanged) {
+            this.loopCheckbox.setValue(this.beat.isLooping());
+            if (this.beat.isLooping()) {
+                this.loopLengthSection.classList.remove("hide");
+            } else {
+                this.loopLengthSection.classList.add("hide");
+            }
         }
     }
 
     rebuild(): HTMLElement {
-        this.loopSettingsView = new BeatLikeLoopSettingsView({beatLike: this.beat});
         this.nameInput = UINode.make("input", {
             value: this.beat.getName(),
             classes: ["beat-settings-name-field"],
             type: "text",
             oninput: (event: Event) => this.beat.setName((event.target as HTMLInputElement).value),
         });
+        this.deleteButton = UINode.make("button", {
+            classes: ["beat-settings-delete"],
+            innerText: "Delete",
+            onclick: () => this.beat.delete(),
+        });
+        this.loopLengthInput = new NumberInputView({
+            initialValue: this.beat.getLoopLength(),
+            onDecrement: () => this.beat.setLoopLength(this.beat.getLoopLength() - 1),
+            onIncrement: () => this.beat.setLoopLength(this.beat.getLoopLength() + 1),
+            onNewInput: (input: number) => this.beat.setLoopLength(input),
+        });
+        this.loopCheckbox = new BoolBoxView({
+            label: "Loop:",
+            value: this.beat.isLooping(),
+            onInput: (isChecked: boolean) => this.beat.setLooping(isChecked),
+        });
+        this.loopLengthSection = UINode.make("div", {
+            classes: ["loop-settings-option"],
+            subs: [
+                this.loopLengthInput.render(),
+            ],
+        });
+        if (this.beat.isLooping()) {
+            this.loopLengthSection.classList.remove("hide");
+        } else {
+            this.loopLengthSection.classList.add("hide");
+        }
         this.node = UINode.make("div", {
             classes: ["beat-settings"],
             subs: [
                 this.nameInput,
-                this.loopSettingsView.render(),
+                UINode.make("div", {
+                    classes: ["loop-settings"],
+                    subs: [
+                        this.loopCheckbox.render(),
+                    ]
+                }),
+                this.loopLengthSection,
+                this.deleteButton,
             ],
         });
         return this.node;

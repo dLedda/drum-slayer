@@ -3,7 +3,17 @@
 }
 
 .number-input-label {
+    display: none;
+}
+
+.number-input-label.top {
+    display: block;
     margin-bottom: 0.5em;
+}
+
+.number-input-label.left {
+    display: inline-block;
+    margin-right: 0.5em;
 }
 
 input[type="number"].number-input-input {
@@ -40,4 +50,18 @@ input[type="number"].number-input-input::-webkit-outer-spin-button {
 
 .number-input-dec {
     border-radius: 0.5em 0 0 0.5em;
+}
+
+.number-input.disabled {
+    filter: brightness(0.8);
+}
+.number-input.disabled input[type="number"].number-input-input {
+    color: var(--color-p-light);
+    background-color: var(--color-ui-neutral-dark);
+}
+.number-input.disabled .number-input-button {
+    cursor: default;
+}
+.number-input.disabled .number-input-button:hover {
+    background-color: var(--color-ui-neutral-dark);
 }

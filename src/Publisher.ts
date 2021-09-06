@@ -1,9 +1,11 @@
 import ISubscriber from "./Subscriber";
 
-export class Publisher<T extends (string | number)> implements IPublisher<T> {
+export class Publisher<T extends (string | number), P> implements IPublisher<T> {
     private subscribers: Map<T | "all", ISubscriber[]>;
+    private parent: P;
 
-    constructor() {
+    constructor(parent: P) {
+        this.parent = parent;
         this.subscribers = new Map();
         this.subscribers.set("all", []);
     }
@@ -41,10 +43,10 @@ export class Publisher<T extends (string | number)> implements IPublisher<T> {
 
     notifySubs(eventType: T) {
         for (const sub of this.getSubscribers(eventType)) {
-            sub.notify(this, eventType);
+            sub.notify(this.parent, eventType);
         }
         for (const sub of this.getSubscribers("all")) {
-            sub.notify(this, eventType);
+            sub.notify(this.parent, eventType);
         }
     }
 }

@@ -8,8 +8,8 @@
 }
 
 .beat-title {
-    line-height: 2em;
     width: 3em;
+    line-height: 32px;
     margin: 0;
 }
 
@@ -29,4 +29,5 @@
 
 .beat {
     width: max-content;
+    margin-bottom: 4px;
 }

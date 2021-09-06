@@ -16,7 +16,7 @@ export const enum BeatUnitEvents {
 
 
 export default class BeatUnit implements IPublisher<BeatUnitEvents> {
-    private publisher: Publisher<BeatUnitEvents> = new Publisher<BeatUnitEvents>();
+    private publisher: Publisher<BeatUnitEvents, BeatUnit> = new Publisher<BeatUnitEvents, BeatUnit>(this);
     private on = false;
     private type: BeatUnitType = BeatUnitType.Normal;
 

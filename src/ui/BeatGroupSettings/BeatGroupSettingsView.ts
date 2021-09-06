@@ -17,11 +17,9 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
     private beatGroup: BeatGroup;
     private barCountInput!: NumberInputView;
     private timeSigUpInput!: NumberInputView;
-    private loopSettingsView!: BeatLikeLoopSettingsView;
     private autoBeatLengthCheckbox!: BoolBoxView;
     private beatSettingsViews: BeatSettingsView[] = [];
     private beatSettingsContainer!: HTMLDivElement;
-    private autoBeatOptions!: HTMLElement;
 
     constructor(options: BeatGroupSettingsUINodeOptions) {
         super(options);
@@ -31,6 +29,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             BeatGroupEvents.TimeSigUpChanged,
             BeatEvents.DisplayTypeChanged,
             BeatGroupEvents.BeatListChanged,
+            BeatGroupEvents.LockingChanged,
         ]);
     }
 
@@ -39,14 +38,14 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             this.barCountInput.setValue(this.beatGroup.getBarCount());
         } else if (event === BeatGroupEvents.TimeSigUpChanged) {
             this.timeSigUpInput.setValue(this.beatGroup.getTimeSigUp());
-        } else if (event === BeatEvents.DisplayTypeChanged) {
-            if (this.beatGroup.isLooping()) {
-                this.autoBeatOptions.classList.add("visible");
-            } else {
-                this.autoBeatOptions.classList.remove("visible");
-            }
         } else if (event === BeatGroupEvents.BeatListChanged) {
             this.remakeBeatSettingsViews();
+        } else if (event === BeatGroupEvents.LockingChanged) {
+            if (this.beatGroup.barsLocked()) {
+                this.barCountInput.disable();
+            } else {
+                this.barCountInput.enable();
+            }
         }
     }
 
@@ -70,7 +69,6 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
     }
 
     rebuild(): HTMLElement {
-        this.loopSettingsView = new BeatLikeLoopSettingsView({beatLike: this.beatGroup});
         this.barCountInput = new NumberInputView({
             label: "Bars:",
             initialValue: this.beatGroup.getBarCount(),
@@ -87,17 +85,6 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             label: "Auto beat length:",
             value: this.beatGroup.autoBeatLengthOn(),
             onInput: (isChecked: boolean) => this.beatGroup.setIsUsingAutoBeatLength(isChecked),
-        });
-        this.autoBeatOptions = UINode.make("div", {
-            classes: ["beat-group-settings-option-group"],
-            subs: [
-                UINode.make("div", {
-                    classes: ["beat-group-settings-autobeat-option", "beat-group-settings-option"],
-                    subs: [
-                        this.autoBeatLengthCheckbox.render(),
-                    ],
-                }),
-            ]
         });
         this.remakeBeatSettingsViews();
         this.node = UINode.make("div", {
@@ -118,13 +105,17 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                                 this.barCountInput.render(),
                             ],
                         }),
-                        this.loopSettingsView.render(),
-                        this.autoBeatOptions,
+                        UINode.make("div", {
+                            classes: ["beat-group-settings-bar-count", "beat-group-settings-option"],
+                            subs: [
+                                this.autoBeatLengthCheckbox.render(),
+                            ],
+                        }),
+                        this.beatSettingsContainer,
                         UINode.make("button", {
                             innerText: "New Track",
                             onclick: () => this.beatGroup.addBeat(),
                         }),
-                        this.beatSettingsContainer
                     ],
                 }),
             ],
