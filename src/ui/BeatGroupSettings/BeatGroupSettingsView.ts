@@ -1,4 +1,3 @@
-import BeatLikeLoopSettingsView from "../BeatLikeLoopSettings/BeatLikeLoopSettingsView";
 import "./BeatGroupSettings.css";
 import UINode, {UINodeOptions} from "../UINode";
 import NumberInputView from "../Widgets/NumberInput/NumberInputView";
@@ -30,6 +29,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             BeatEvents.DisplayTypeChanged,
             BeatGroupEvents.BeatListChanged,
             BeatGroupEvents.LockingChanged,
+            BeatGroupEvents.AutoBeatSettingsChanged,
         ]);
     }
 
@@ -46,6 +46,8 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             } else {
                 this.barCountInput.enable();
             }
+        } else if (event === BeatGroupEvents.AutoBeatSettingsChanged) {
+            this.autoBeatLengthCheckbox.setValue(this.beatGroup.autoBeatLengthOn());
         }
     }
 

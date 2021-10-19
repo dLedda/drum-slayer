@@ -64,34 +64,38 @@ button:focus {
 ::-webkit-scrollbar {
     background-color: transparent;
 }
+body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ui-neutral-dark) transparent;
+}
 ::-webkit-scrollbar-thumb {
-    background-color: rgba(0,0,0);
+    background-color: rgba(0,0,0,0);
 }
 
 @font-face {
     font-family: 'DMSans';
     font-style: normal;
     font-weight: 400;
-    src: url(/static/DMSans-Regular.ttf) format('woff2');
+    src: url(./DMSans-Regular.ttf) format('woff2');
 }
 
 @font-face {
     font-family: 'DMSans';
     font-style: normal;
     font-weight: 600;
-    src: url(/static/DMSans-Bold.ttf) format('woff2');
+    src: url(./DMSans-Bold.ttf) format('woff2');
 }
 
 @font-face {
     font-family: 'DMSans';
     font-style: italic;
     font-weight: 400;
-    src: url(/static/DMSans-Italic.ttf) format('woff2');
+    src: url(./DMSans-Italic.ttf) format('woff2');
 }
 
 @font-face {
     font-family: 'DMSans';
     font-style: italic;
     font-weight: 600;
-    src: url(/static/DMSans-BoldItalic.ttf) format('woff2');
+    src: url(./DMSans-BoldItalic.ttf) format('woff2');
 }

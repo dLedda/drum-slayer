@@ -2,11 +2,13 @@
     height: 1.1em;
     margin: 0.5em;
     line-height: 1em;
+    cursor: pointer;
 }
 
 .bool-box-label {
     display: inline-block;
     margin-right: 0.5em;
+    cursor: pointer;
 }
 
 input.bool-box-checkbox[type="checkbox"] {
@@ -20,6 +22,7 @@ input.bool-box-checkbox[type="checkbox"] {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+    cursor: pointer;
 }
 
 input.bool-box-checkbox[type="checkbox"]::before {

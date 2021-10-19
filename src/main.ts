@@ -1,6 +1,6 @@
-import "./main.css";
 import BeatGroup from "./BeatGroup";
 import RootView from "./ui/Root/RootView";
+import "./ui/global.css";
 
 const defaultSettings = {
     barCount: 2,

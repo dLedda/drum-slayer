@@ -11,6 +11,11 @@
     cursor: pointer;
 }
 
+.vertical-mode .beat-unit {
+    margin-bottom: 4px;
+    display: block;
+}
+
 .beat-unit:hover {
     border-color: var(--color-ui-neutral-dark-hover);
     background-color: var(--color-ui-neutral-dark-hover);

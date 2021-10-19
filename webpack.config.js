@@ -25,18 +25,20 @@ const webpackConfig = {
                 }, {
                     loader: "css-loader",
                     options: {
+                        url: true,
                         sourceMap: true
                     }
                 }]
             },
-            {
-                test: /\.(png|jpe?g|gif|ttf|woff2?|eot|svg)$/i,
-                use: [
-                    {
-                        loader: "file-loader",
-                    },
-                ],
-            }]
+            // {
+            //     test: /\.(png|jpe?g|gif|ttf|woff2?|eot|svg)$/i,
+            //     use: [
+            //         {
+            //             loader: "file-loader",
+            //         },
+            //     ],
+            // }
+        ]
     },
 
     resolve: {
@@ -45,13 +47,14 @@ const webpackConfig = {
 
     output: {
         filename: "bundle.js",
-        publicPath: "/static",
+        publicPath: "/static/",
         path: path.resolve(__dirname, "./public/static/"),
     },
 
     devServer: {
         static: {
             directory: path.join(__dirname, "./public"),
+            publicPath: "/",
         },
         hot: true,
         compress: true,

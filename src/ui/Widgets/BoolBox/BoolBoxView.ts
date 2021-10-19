@@ -39,6 +39,9 @@ export default class BoolBoxView extends UINode {
         this.labelElement = UINode.make("label", {
             classes: ["bool-box-label"],
             innerText: this.label ?? "",
+            onclick: () => {
+                this.onInput(!this.checkboxElement.checked);
+            },
         });
         if (this.label !== null) {
             this.labelElement.classList.add("visible");
@@ -46,7 +49,9 @@ export default class BoolBoxView extends UINode {
         this.checkboxElement = UINode.make("input", {
             type: "checkbox",
             classes: ["bool-box-checkbox"],
-            oninput: (event: Event) => this.onInput((event.target as HTMLInputElement).checked),
+            onclick: (event: Event) => {
+                this.onInput((event.target as HTMLInputElement).checked);
+            },
         });
         return UINode.make("div", {
             classes: ["bool-box"],

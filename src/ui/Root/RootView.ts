@@ -14,6 +14,7 @@ export default class RootView extends UINode {
     private beatGroupView: BeatGroupView;
     private mainBeatGroup: BeatGroup;
     private beatGroupSettingsView!: BeatGroupSettingsView;
+    private sidebar!: HTMLDivElement;
 
 
     constructor(options: RootUINodeOptions) {
@@ -23,18 +24,47 @@ export default class RootView extends UINode {
         this.title = options.title;
     }
 
-    rebuild(): HTMLDivElement {
+    toggleSidebar(): void {
+        this.node!.classList.toggle("sidebar-visible");
+    }
+
+    toggleOrientation(): void {
+        this.node!.classList.toggle("vertical-mode");
+    }
+
+    rebuild(): HTMLElement {
         this.beatGroupSettingsView = new BeatGroupSettingsView({beatGroup: this.mainBeatGroup});
-        return UINode.make("div", {
-            classes: ["root"],
+        const sidebarMain = UINode.make("div", {
+            classes: ["root-settings"],
+            subs: [
+                UINode.make("h1", {innerText: this.title, classes: ["root-title"]}),
+                this.beatGroupSettingsView.render(),
+            ]
+        });
+        const sidebarToggle = UINode.make("div", {
+            classes: ["root-sidebar-toggle"],
             subs: [
                 UINode.make("div", {
-                    classes: ["root-settings"],
-                    subs: [
-                        UINode.make("h1", {innerText: this.title, classes: ["root-title"]}),
-                        this.beatGroupSettingsView.render(),
-                    ]
+                    classes: ["root-hamburger"],
+                    onclick: () => this.toggleSidebar(),
                 }),
+                UINode.make("div", {
+                    classes: ["root-switch-mode"],
+                    onclick: () => this.toggleOrientation(),
+                })
+            ]
+        });
+        this.sidebar = UINode.make("div", {
+            classes: ["root-sidebar"],
+            subs: [
+                sidebarMain,
+                sidebarToggle,
+            ]
+        });
+        this.node = UINode.make("div", {
+            classes: ["root", "sidebar-visible"],
+            subs: [
+                this.sidebar,
                 UINode.make("div", {
                     classes: ["root-beat-stage-container"],
                     subs: [
@@ -48,5 +78,6 @@ export default class RootView extends UINode {
                 })
             ],
         });
+        return this.node;
     }
 }
