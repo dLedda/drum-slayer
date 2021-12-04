@@ -2,11 +2,10 @@ import "./BeatSettings.css";
 import Beat, {BeatEvents} from "../../Beat";
 import UINode, {UINodeOptions} from "../UINode";
 import ISubscriber from "../../Subscriber";
-import BeatLikeLoopSettingsView from "../BeatLikeLoopSettings/BeatLikeLoopSettingsView";
 import {IPublisher} from "../../Publisher";
-import BeatLike from "../../BeatLike";
 import NumberInputView from "../Widgets/NumberInput/NumberInputView";
 import BoolBoxView from "../Widgets/BoolBox/BoolBoxView";
+import ActionButtonView from "../Widgets/ActionButton/ActionButtonView";
 
 export type BeatSettingsViewUINodeOptions = UINodeOptions & {
     beat: Beat,
@@ -15,7 +14,7 @@ export type BeatSettingsViewUINodeOptions = UINodeOptions & {
 export default class BeatSettingsView extends UINode implements ISubscriber {
     private beat: Beat;
     private nameInput!: HTMLInputElement;
-    private deleteButton!: HTMLButtonElement;
+    private deleteButton!: ActionButtonView;
     private loopLengthInput!: NumberInputView;
     private loopCheckbox!: BoolBoxView;
     private loopLengthSection!: HTMLDivElement;
@@ -62,10 +61,10 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
             type: "text",
             oninput: (event: Event) => this.beat.setName((event.target as HTMLInputElement).value),
         });
-        this.deleteButton = UINode.make("button", {
-            classes: ["beat-settings-delete"],
-            innerText: "Delete",
-            onclick: () => this.beat.delete(),
+        this.deleteButton = new ActionButtonView({
+            label: "Delete",
+            type: "secondary",
+            onClick: () => this.beat.delete(),
         });
         this.loopLengthInput = new NumberInputView({
             initialValue: this.beat.getLoopLength(),
@@ -89,7 +88,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         } else {
             this.loopLengthSection.classList.add("hide");
         }
-        this.node = UINode.make("div", {
+        return UINode.make("div", {
             classes: ["beat-settings"],
             subs: [
                 this.nameInput,
@@ -100,9 +99,8 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
                     ]
                 }),
                 this.loopLengthSection,
-                this.deleteButton,
+                this.deleteButton.render(),
             ],
         });
-        return this.node;
     }
 }

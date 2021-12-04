@@ -27,8 +27,8 @@
 }
 
 .beat-unit.beat-unit-on {
-    background-color: var(--color-ui-accent-light);
-    border-color: var(--color-ui-neutral-light);
+    background-color: var(--color-ui-accent);
+    border-color: var(--color-ui-accent);
     transition: none;
 }
 

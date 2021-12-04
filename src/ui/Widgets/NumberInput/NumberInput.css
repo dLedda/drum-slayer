@@ -1,5 +1,6 @@
 .number-input {
     text-align: center;
+    white-space: nowrap;
 }
 
 .number-input-label {
@@ -17,6 +18,7 @@
 }
 
 input[type="number"].number-input-input {
+    position: relative;
     -webkit-appearance: textfield;
     -moz-appearance: textfield;
     text-align: center;
@@ -25,7 +27,8 @@ input[type="number"].number-input-input {
     border-width: 0;
     border-radius: 0;
     background-color: var(--color-ui-neutral-light);
-    color: var(--color-p-dark)
+    color: var(--color-p-dark);
+    z-index: 1;
 }
 
 input[type="number"].number-input-input::-webkit-inner-spin-button,
@@ -39,9 +42,13 @@ input[type="number"].number-input-input::-webkit-outer-spin-button {
     color: var(--color-ui-neutral-light);
     cursor: pointer;
 }
-
 .number-input-button:hover {
     background-color: var(--color-ui-neutral-dark-hover);
+    color: var(--color-ui-neutral-light-hover);
+}
+.number-input-button:active {
+    background-color: var(--color-ui-neutral-dark-active);
+    color: var(--color-ui-neutral-light-active);
 }
 
 .number-input-inc {

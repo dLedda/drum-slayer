@@ -1,13 +1,21 @@
 :root {
-    --color-ui-accent-light: #07afb6;
-    --color-ui-accent-dark: #00888b;
+    --color-ui-accent: #00b3ba;
+    --color-ui-accent-hover: #00c1c9;
+    --color-ui-accent-active: #008e93;
     --color-ui-neutral-light: #fdfdfe;
+    --color-ui-neutral-light-hover: #fdfdfe;
+    --color-ui-neutral-light-active: #fdfdfe;
     --color-ui-neutral-dark: #8b8b8b;
     --color-ui-neutral-dark-hover: #a1a1a1;
+    --color-ui-neutral-dark-active: #c1c1c1;
     --color-bg-light: #464646;
     --color-bg-dark: #282828;
     --color-p-light: #fafafa;
+    --color-p-light-hover: #fafafa;
+    --color-p-light-active: #fafafa;
     --color-p-dark: #282828;
+    --color-p-dark-hover: #464646;
+    --color-p-dark-active: #464646;
     --color-title-light: #fafafa;
     --color-title-dark: #282828;
 }

@@ -29,7 +29,7 @@ input.bool-box-checkbox[type="checkbox"]::before {
     width: 2em;
     height: 1em;
     border-radius: 1em;
-    background-color: var(--color-ui-accent-dark);
+    background-color: var(--color-ui-accent-active);
     display: inline-block;
     content: "";
     z-index: 0;
@@ -38,7 +38,7 @@ input.bool-box-checkbox[type="checkbox"]::before {
 }
 
 input.bool-box-checkbox[type="checkbox"]:checked::before {
-    background-color: var(--color-ui-accent-light);
+    background-color: var(--color-ui-accent);
 }
 
 input.bool-box-checkbox[type="checkbox"]::after {

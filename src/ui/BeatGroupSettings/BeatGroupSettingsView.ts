@@ -7,6 +7,7 @@ import {IPublisher} from "../../Publisher";
 import {BeatEvents} from "../../Beat";
 import BoolBoxView from "../Widgets/BoolBox/BoolBoxView";
 import BeatSettingsView from "../BeatSettings/BeatSettingsView";
+import ActionButtonView from "../Widgets/ActionButton/ActionButtonView";
 
 export type BeatGroupSettingsUINodeOptions = UINodeOptions & {
     beatGroup: BeatGroup,
@@ -89,7 +90,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             onInput: (isChecked: boolean) => this.beatGroup.setIsUsingAutoBeatLength(isChecked),
         });
         this.remakeBeatSettingsViews();
-        this.node = UINode.make("div", {
+        return UINode.make("div", {
             classes: ["beat-group-settings"],
             subs: [
                 UINode.make("div", {
@@ -114,14 +115,13 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                             ],
                         }),
                         this.beatSettingsContainer,
-                        UINode.make("button", {
-                            innerText: "New Track",
-                            onclick: () => this.beatGroup.addBeat(),
-                        }),
+                        new ActionButtonView({
+                            label: "New Track",
+                            onClick: () => this.beatGroup.addBeat(),
+                        }).render(),
                     ],
                 }),
             ],
         });
-        return this.node;
     }
 }
