@@ -1,4 +1,4 @@
-import {IPublisher, Publisher} from "./Publisher";
+import {IPublisher, ISubscription, Publisher} from "./Publisher";
 import ISubscriber from "./Subscriber";
 
 export enum BeatUnitType {
@@ -24,7 +24,7 @@ export default class BeatUnit implements IPublisher<BeatUnitEvents> {
         this.on = on;
     }
 
-    addSubscriber(subscriber: ISubscriber, eventType: "all" | BeatUnitEvents | BeatUnitEvents[]): { unbind: () => void } {
+    addSubscriber(subscriber: ISubscriber, eventType: "all" | BeatUnitEvents | BeatUnitEvents[]): ISubscription {
         return this.publisher.addSubscriber(subscriber, eventType);
     }
 

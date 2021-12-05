@@ -1,5 +1,29 @@
 import ISubscriber from "./Subscriber";
 
+class Subscription<T extends (string | number), P> implements ISubscription {
+    private subscriber: ISubscriber;
+    private readonly eventTypes: T[];
+    private publisher: Publisher<T, P>;
+    constructor(publisher: Publisher<T, P>, subscriber: ISubscriber, eventTypes: T[]) {
+        this.subscriber = subscriber;
+        this.publisher = publisher;
+        this.eventTypes = eventTypes;
+    }
+
+    unbind(): void {
+        this.publisher.unbind(this);
+    }
+
+    getEventTypes(): T[] {
+        return this.eventTypes;
+    }
+
+    getSubscriber(): ISubscriber {
+        return this.subscriber;
+    }
+}
+
+
 export class Publisher<T extends (string | number), P> implements IPublisher<T> {
     private subscribers: Map<T | "all", ISubscriber[]>;
     private parent: P;
@@ -10,7 +34,7 @@ export class Publisher<T extends (string | number), P> implements IPublisher<T> 
         this.subscribers.set("all", []);
     }
 
-    addSubscriber(subscriber: ISubscriber, eventType: (T | "all") | T[]): {unbind: () => void} {
+    addSubscriber(subscriber: ISubscriber, eventType: (T | "all") | T[]): ISubscription {
         let eventTypes: (T | "all")[] = [];
         if (!Array.isArray(eventType)) {
             eventTypes.push(eventType);
@@ -20,14 +44,14 @@ export class Publisher<T extends (string | number), P> implements IPublisher<T> 
         for (const key of eventTypes) {
             this.getSubscribers(key).push(subscriber);
         }
-        return {
-            unbind: () => {
-                for (const key of eventTypes) {
-                    const subs = this.getSubscribers(key);
-                    subs.splice(subs.indexOf(subscriber), 1);
-                }
-            }
-        };
+        return new Subscription(this, subscriber, eventTypes);
+    }
+
+    unbind(subscription: Subscription<T, P>): void {
+        for (const key of subscription.getEventTypes()) {
+            const subs = this.getSubscribers(key);
+            subs.splice(subs.indexOf(subscription.getSubscriber()), 1);
+        }
     }
 
     private getSubscribers(key: T | "all"): ISubscriber[] {
@@ -41,7 +65,7 @@ export class Publisher<T extends (string | number), P> implements IPublisher<T> 
         }
     }
 
-    notifySubs(eventType: T) {
+    notifySubs(eventType: T): void {
         for (const sub of this.getSubscribers(eventType)) {
             sub.notify(this.parent, eventType);
         }
@@ -53,4 +77,8 @@ export class Publisher<T extends (string | number), P> implements IPublisher<T> 
 
 export interface IPublisher<T extends string | number> {
     addSubscriber(subscriber: ISubscriber, eventType: (T | "all") | T[]): {unbind: () => void};
+}
+
+export interface ISubscription {
+    unbind(): void;
 }

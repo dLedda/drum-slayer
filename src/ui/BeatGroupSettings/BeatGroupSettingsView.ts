@@ -114,11 +114,11 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                                 this.autoBeatLengthCheckbox.render(),
                             ],
                         }),
-                        this.beatSettingsContainer,
                         new ActionButtonView({
                             label: "New Track",
                             onClick: () => this.beatGroup.addBeat(),
                         }).render(),
+                        this.beatSettingsContainer,
                     ],
                 }),
             ],

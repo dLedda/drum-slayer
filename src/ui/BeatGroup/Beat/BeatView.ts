@@ -24,6 +24,15 @@ export default class BeatView extends UINode implements ISubscriber {
         this.setupBindings();
     }
 
+    private onBeatViewHover(beatView: BeatUnitView) {
+        this.lastHoveredBeatUnitView = beatView;
+        if (BeatView.selectingUnits) {
+            this.lastHoveredBeatUnitView.turnOn();
+        } else if (BeatView.deselectingUnits) {
+            this.lastHoveredBeatUnitView.turnOff();
+        }
+    }
+
     private setupBindings() {
         this.beat.addSubscriber(this, "all");
     }
@@ -56,14 +65,7 @@ export default class BeatView extends UINode implements ISubscriber {
                     view = new BeatUnitView({beatUnit});
                     this.beatUnitViews.push(view);
                 }
-                view.onHover(() => {
-                    this.lastHoveredBeatUnitView = view;
-                    if (BeatView.selectingUnits) {
-                        this.lastHoveredBeatUnitView.turnOn();
-                    } else if (BeatView.deselectingUnits) {
-                        this.lastHoveredBeatUnitView.turnOff();
-                    }
-                });
+                view.onHover(() => this.onBeatViewHover(view));
                 view.onMouseDown((event: MouseEvent) => this.onBeatUnitClick(event.button, i));
             }
         }

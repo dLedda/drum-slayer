@@ -25,11 +25,11 @@ export default class RootView extends UINode {
     }
 
     toggleSidebar(): void {
-        this.node!.classList.toggle("sidebar-visible");
+        this.node?.classList.toggle("sidebar-visible");
     }
 
     toggleOrientation(): void {
-        this.node!.classList.toggle("vertical-mode");
+        this.node?.classList.toggle("vertical-mode");
     }
 
     rebuild(): HTMLElement {

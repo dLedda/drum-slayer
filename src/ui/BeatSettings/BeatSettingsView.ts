@@ -2,7 +2,7 @@ import "./BeatSettings.css";
 import Beat, {BeatEvents} from "../../Beat";
 import UINode, {UINodeOptions} from "../UINode";
 import ISubscriber from "../../Subscriber";
-import {IPublisher} from "../../Publisher";
+import {IPublisher, ISubscription} from "../../Publisher";
 import NumberInputView from "../Widgets/NumberInput/NumberInputView";
 import BoolBoxView from "../Widgets/BoolBox/BoolBoxView";
 import ActionButtonView from "../Widgets/ActionButton/ActionButtonView";
@@ -18,7 +18,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
     private loopLengthInput!: NumberInputView;
     private loopCheckbox!: BoolBoxView;
     private loopLengthSection!: HTMLDivElement;
-    private sub!: { unbind: () => void };
+    private sub!: ISubscription;
 
     constructor(options: BeatSettingsViewUINodeOptions) {
         super(options);
