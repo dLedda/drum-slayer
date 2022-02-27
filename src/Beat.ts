@@ -150,4 +150,13 @@ export default class Beat implements IPublisher<BeatEvents>, BeatLike {
     delete(): void {
         this.publisher.notifySubs(BeatEvents.WantsRemoval);
     }
+
+    bakeLoops(): void {
+        if (this.isLooping()) {
+            this.unitRecord.forEach((unit, i) => {
+                unit.setOn(this.getUnitByIndex(i)?.isOn() ?? false);
+            });
+            this.setLooping(false);
+        }
+    }
 }

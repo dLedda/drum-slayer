@@ -264,4 +264,9 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
         this.barSettingsLocked = false;
         this.publisher.notifySubs(BeatGroupEvents.LockingChanged);
     }
+
+    bakeLoops(): void {
+        this.beats.forEach(beat => beat.bakeLoops());
+        this.setIsUsingAutoBeatLength(false);
+    }
 }

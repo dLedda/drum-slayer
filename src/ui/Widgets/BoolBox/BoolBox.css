@@ -1,5 +1,6 @@
 .bool-box {
     height: 1.1em;
+    white-space: nowrap;
     margin: 0.5em;
     line-height: 1em;
     cursor: pointer;
@@ -28,6 +29,7 @@ input.bool-box-checkbox[type="checkbox"] {
 input.bool-box-checkbox[type="checkbox"]::before {
     width: 2em;
     height: 1em;
+    margin: 0.1em;
     border-radius: 1em;
     background-color: var(--color-ui-accent-active);
     display: inline-block;
@@ -42,23 +44,23 @@ input.bool-box-checkbox[type="checkbox"]:checked::before {
 }
 
 input.bool-box-checkbox[type="checkbox"]::after {
+    box-sizing: border-box;
     position: absolute;
-    width: 1.05em;
-    height: 1.05em;
+    width: 1.2em;
+    height: 1.2em;
     border-radius: 1em;
     border-color: var(--color-ui-neutral-dark);
-    border-width: 0.05em;
+    border-width: 0.075em;
     border-style: solid;
     background-color: var(--color-ui-neutral-dark);
     display: block;
     content: "";
-    top: -0.075em;
+    left: -0.05em;
     z-index: 1;
-    left: -0.075em;
     transition: left 200ms, background-color 200ms;
 }
 
 input.bool-box-checkbox[type="checkbox"]:checked::after {
-    left: 0.925em;
+    left: 1.1em;
     background-color: var(--color-ui-neutral-light);
 }
