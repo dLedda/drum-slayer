@@ -64,28 +64,11 @@
     left: 0;
 }
 
-.root-hamburger {
+.root-hamburger, .root-switch-mode {
     right: 0;
     width: 2em;
     height: 2em;
     cursor: pointer;
-    -webkit-mask-image: url(./drawing.svg);
-    mask-image: url(./drawing.svg);
-    -webkit-mask-size: 2em;
-    mask-size: 2em;
-    background-color: var(--color-ui-neutral-dark);
-}
-
-.root-switch-mode {
-    right: 0;
-    width: 2em;
-    height: 2em;
-    cursor: pointer;
-    -webkit-mask-image: url(./rotate.svg);
-    mask-image: url(./rotate.svg);
-    -webkit-mask-size: 2em;
-    mask-size: 2em;
-    background-color: var(--color-ui-neutral-dark);
 }
 
 .root-beat-stage-container {

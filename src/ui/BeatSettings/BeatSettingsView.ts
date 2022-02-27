@@ -1,11 +1,11 @@
 import "./BeatSettings.css";
-import Beat, {BeatEvents} from "../../Beat";
-import UINode, {UINodeOptions} from "../UINode";
-import ISubscriber from "../../Subscriber";
-import {IPublisher, ISubscription} from "../../Publisher";
-import NumberInputView from "../Widgets/NumberInput/NumberInputView";
-import BoolBoxView from "../Widgets/BoolBox/BoolBoxView";
-import ActionButtonView from "../Widgets/ActionButton/ActionButtonView";
+import Beat, {BeatEvents} from "@/Beat";
+import UINode, {UINodeOptions} from "@/ui/UINode";
+import ISubscriber from "@/Subscriber";
+import {IPublisher, ISubscription} from "@/Publisher";
+import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
+import BoolBoxView from "@/ui/Widgets/BoolBox/BoolBoxView";
+import ActionButtonView from "@/ui/Widgets/ActionButton/ActionButtonView";
 
 export type BeatSettingsViewUINodeOptions = UINodeOptions & {
     beat: Beat,
@@ -54,7 +54,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         }
     }
 
-    rebuild(): HTMLElement {
+    build(): HTMLElement {
         this.nameInput = UINode.make("input", {
             value: this.beat.getName(),
             classes: ["beat-settings-name-field"],
@@ -62,7 +62,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
             oninput: (event: Event) => this.beat.setName((event.target as HTMLInputElement).value),
         });
         this.deleteButton = new ActionButtonView({
-            label: "Delete",
+            icon: "trash",
             type: "secondary",
             onClick: () => this.beat.delete(),
         });

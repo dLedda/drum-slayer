@@ -1,4 +1,4 @@
-import UINode, { UINodeOptions } from "../../UINode";
+import UINode, { UINodeOptions } from "@/ui/UINode";
 import "./NumberInput.css";
 
 type NumberInputUINodeOptionsBase = UINodeOptions & {
@@ -27,7 +27,6 @@ export type NumberInputUINodeOptions = NumberInputUINodeOptionsGetSet | NumberIn
 
 export default class NumberInputView extends UINode {
     private labelElement!: HTMLLabelElement;
-    private mainElement!: HTMLDivElement;
     private inputElement!: HTMLInputElement;
     private labelPosition: "top" | "left";
     private value: number;
@@ -63,12 +62,12 @@ export default class NumberInputView extends UINode {
     }
 
     disable(): void {
-        this.mainElement.classList.add("disabled");
+        this.node?.classList.add("disabled");
         this.inputElement.disabled = true;
     }
 
     enable(): void {
-        this.mainElement.classList.remove("disabled");
+        this.node?.classList.remove("disabled");
         this.inputElement.disabled = false;
     }
 
@@ -77,7 +76,7 @@ export default class NumberInputView extends UINode {
         this.inputElement.valueAsNumber = value;
     }
 
-    rebuild(): HTMLDivElement {
+    build(): HTMLDivElement {
         this.labelElement = UINode.make("label", {
             classes: ["number-input-label", this.labelPosition],
             innerText: this.label ?? "",
@@ -100,7 +99,7 @@ export default class NumberInputView extends UINode {
                 }
             },
         });
-        this.mainElement = UINode.make("div", {
+        return UINode.make("div", {
             classes: ["number-input"],
             subs: [
                 this.labelElement,
@@ -129,6 +128,5 @@ export default class NumberInputView extends UINode {
                 }),
             ],
         });
-        return this.mainElement;
     }
 }

@@ -1,8 +1,8 @@
-import BeatUnit from "./BeatUnit";
-import {IPublisher, Publisher} from "./Publisher";
-import ISubscriber from "./Subscriber";
-import BeatLike from "./BeatLike";
-import {isPosInt} from "./utils";
+import BeatUnit from "@/BeatUnit";
+import {IPublisher, Publisher} from "@/Publisher";
+import ISubscriber from "@/Subscriber";
+import BeatLike from "@/BeatLike";
+import {isPosInt} from "@/utils";
 
 export type BeatInitOptions = {
     timeSig?: {

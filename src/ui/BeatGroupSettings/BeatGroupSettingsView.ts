@@ -1,13 +1,13 @@
 import "./BeatGroupSettings.css";
-import UINode, {UINodeOptions} from "../UINode";
-import NumberInputView from "../Widgets/NumberInput/NumberInputView";
-import ISubscriber from "../../Subscriber";
-import BeatGroup, {BeatGroupEvents} from "../../BeatGroup";
-import {IPublisher} from "../../Publisher";
-import {BeatEvents} from "../../Beat";
-import BoolBoxView from "../Widgets/BoolBox/BoolBoxView";
-import BeatSettingsView from "../BeatSettings/BeatSettingsView";
-import ActionButtonView from "../Widgets/ActionButton/ActionButtonView";
+import UINode, {UINodeOptions} from "@/ui/UINode";
+import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
+import ISubscriber from "@/Subscriber";
+import BeatGroup, {BeatGroupEvents} from "@/BeatGroup";
+import {IPublisher} from "@/Publisher";
+import {BeatEvents} from "@/Beat";
+import BoolBoxView from "@/ui/Widgets/BoolBox/BoolBoxView";
+import BeatSettingsView from "@/ui/BeatSettings/BeatSettingsView";
+import ActionButtonView from "@/ui/Widgets/ActionButton/ActionButtonView";
 
 export type BeatGroupSettingsUINodeOptions = UINodeOptions & {
     beatGroup: BeatGroup,
@@ -71,7 +71,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
         }
     }
 
-    rebuild(): HTMLElement {
+    build(): HTMLElement {
         this.barCountInput = new NumberInputView({
             label: "Bars:",
             initialValue: this.beatGroup.getBarCount(),

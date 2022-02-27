@@ -1,11 +1,11 @@
 import "./BeatLikeLoopSettings.css";
-import BeatLike from "../../BeatLike";
-import NumberInputView from "../Widgets/NumberInput/NumberInputView";
-import ISubscriber from "../../Subscriber";
-import UINode, {UINodeOptions} from "../UINode";
-import {BeatEvents} from "../../Beat";
-import {IPublisher} from "../../Publisher";
-import BoolBoxView from "../Widgets/BoolBox/BoolBoxView";
+import BeatLike from "@/BeatLike";
+import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
+import ISubscriber from "@/Subscriber";
+import UINode, {UINodeOptions} from "@/ui/UINode";
+import {BeatEvents} from "@/Beat";
+import {IPublisher} from "@/Publisher";
+import BoolBoxView from "@/ui/Widgets/BoolBox/BoolBoxView";
 
 export type BeatLikeLoopSettingsViewUINodeOptions = UINodeOptions & {
     beatLike: BeatLike,
@@ -52,7 +52,7 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
         this.notify(null, BeatEvents.DisplayTypeChanged);
     }
 
-    rebuild(): HTMLElement {
+    build(): HTMLElement {
         this.loopLengthInput = new NumberInputView({
             initialValue: this.beatLike.getLoopLength(),
             label: "Length:",
@@ -76,7 +76,7 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
         } else {
             this.loopLengthSection.classList.add("hide");
         }
-        this.node = UINode.make("div", {
+        return UINode.make("div", {
             classes: ["loop-settings"],
             subs: [
                 UINode.make("p", {innerText: this.title}),
@@ -94,6 +94,5 @@ export default class BeatLikeLoopSettingsView extends UINode implements ISubscri
                 }),
             ]
         });
-        return this.node;
     }
 }

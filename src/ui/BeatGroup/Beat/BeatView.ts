@@ -1,7 +1,7 @@
-import UINode, {UINodeOptions} from "../../UINode";
-import Beat, {BeatEvents} from "../../../Beat";
-import {IPublisher} from "../../../Publisher";
-import ISubscriber from "../../../Subscriber";
+import UINode, {UINodeOptions} from "@/ui/UINode";
+import Beat, {BeatEvents} from "@/Beat";
+import {IPublisher} from "@/Publisher";
+import ISubscriber from "@/Subscriber";
 import BeatUnitView from "./BeatUnit/BeatUnitView";
 import "./Beat.css";
 
@@ -129,7 +129,7 @@ export default class BeatView extends UINode implements ISubscriber {
         this.respaceBeatUnits();
     }
 
-    rebuild(): HTMLElement {
+    build(): HTMLElement {
         this.title = UINode.make("h3", {
             innerText: this.beat.getName(),
             classes: ["beat-title"],
@@ -138,7 +138,7 @@ export default class BeatView extends UINode implements ISubscriber {
         if (!this.beatUnitViewBlock) {
             throw new Error("Beat unit block setup failed!");
         }
-        this.node = UINode.make("div", {
+        return UINode.make("div", {
             classes: ["beat"],
             subs: [
                 UINode.make("div", {
@@ -150,7 +150,6 @@ export default class BeatView extends UINode implements ISubscriber {
                 }),
             ],
         });
-        return this.node;
     }
 }
 

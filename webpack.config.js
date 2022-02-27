@@ -15,7 +15,7 @@ const webpackConfig = {
                 test: /\.(ts|tsx)$/,
                 loader: "ts-loader",
                 include: [path.resolve(__dirname, "src")],
-                exclude: [/node_modules/]
+                exclude: [/node_modules/],
             },
             {
                 test: /.css$/,
@@ -30,18 +30,21 @@ const webpackConfig = {
                     }
                 }]
             },
-            // {
-            //     test: /\.(png|jpe?g|gif|ttf|woff2?|eot|svg)$/i,
-            //     use: [
-            //         {
-            //             loader: "file-loader",
-            //         },
-            //     ],
-            // }
+            {
+                test: /\.(png|jpe?g|gif|ttf|woff2?|eot|svg)$/i,
+                use: [
+                    {
+                        loader: "file-loader",
+                    },
+                ],
+            }
         ]
     },
 
     resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "./src"),
+        },
         extensions: [".tsx", ".ts", ".js"]
     },
 

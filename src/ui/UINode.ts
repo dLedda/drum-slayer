@@ -17,7 +17,7 @@ export default abstract class UINode {
 
     render(): HTMLElement {
         if (!this.node) {
-            this.node = this.rebuild();
+            this.node = this.build();
         }
         return this.node;
     }
@@ -37,12 +37,14 @@ export default abstract class UINode {
         }
         const parent = this.node.parentElement;
         if (parent) {
-            this.node = this.rebuild();
+            this.node = this.build();
             parent.replaceChild(this.node, oldNode);
+        } else {
+            this.render();
         }
     }
 
-    abstract rebuild(): HTMLElement;
+    protected abstract build(): HTMLElement;
 
     static make<
             T extends keyof HTMLElementTagNameMap,
@@ -63,5 +65,17 @@ export default abstract class UINode {
             }
         }
         return element;
+    }
+
+    static q(text: string): Text {
+        return document.createTextNode(text);
+    }
+
+    static frag(subs?: Node[]): DocumentFragment {
+        const frag = document.createDocumentFragment();
+        if (subs) {
+            frag.append(...subs);
+        }
+        return frag;
     }
 }

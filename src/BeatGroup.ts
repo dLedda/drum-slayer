@@ -1,8 +1,8 @@
-import Beat, {BeatEvents, BeatInitOptions} from "./Beat";
-import {IPublisher, Publisher} from "./Publisher";
-import ISubscriber from "./Subscriber";
-import BeatLike from "./BeatLike";
-import {greatestCommonDivisor, isPosInt} from "./utils";
+import Beat, {BeatEvents, BeatInitOptions} from "@/Beat";
+import {IPublisher, Publisher} from "@/Publisher";
+import ISubscriber from "@/Subscriber";
+import BeatLike from "@/BeatLike";
+import {greatestCommonDivisor, isPosInt} from "@/utils";
 
 type BeatGroupInitOptions = {
     barCount: number;

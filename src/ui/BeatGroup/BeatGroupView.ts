@@ -1,9 +1,9 @@
-import UINode, {UINodeOptions} from "../UINode";
-import BeatGroup, {BeatGroupEvents} from "../../BeatGroup";
+import UINode, {UINodeOptions} from "@/ui/UINode";
+import BeatGroup, {BeatGroupEvents} from "@/BeatGroup";
 import BeatView from "./Beat/BeatView";
 import "./BeatGroup.css";
-import ISubscriber from "../../Subscriber";
-import {IPublisher} from "../../Publisher";
+import ISubscriber from "@/Subscriber";
+import {IPublisher} from "@/Publisher";
 
 export type BeatGroupUINodeOptions = UINodeOptions & {
     title: string,
@@ -28,7 +28,7 @@ export default class BeatGroupView extends UINode implements ISubscriber {
         }
     }
 
-    rebuild(): HTMLDivElement {
+    build(): HTMLDivElement {
         this.beatViews = [];
         for (let i = 0; i < this.beatGroup.getBeatCount(); i++) {
             this.beatViews.push(new BeatView({beat: this.beatGroup.getBeatByIndex(i)}));

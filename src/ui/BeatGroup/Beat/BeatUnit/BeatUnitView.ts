@@ -1,7 +1,7 @@
-import BeatUnit, {BeatUnitEvents, BeatUnitType} from "../../../../BeatUnit";
-import ISubscriber from "../../../../Subscriber";
-import UINode, {UINodeOptions} from "../../../UINode";
-import {IPublisher, ISubscription, Publisher} from "../../../../Publisher";
+import BeatUnit, {BeatUnitEvents, BeatUnitType} from "@/BeatUnit";
+import ISubscriber from "@/Subscriber";
+import UINode, {UINodeOptions} from "@/ui/UINode";
+import {IPublisher, ISubscription, Publisher} from "@/Publisher";
 import "./BeatUnit.css";
 
 export type BeatUnitUINodeOptions = UINodeOptions & {
@@ -29,6 +29,12 @@ export default class BeatUnitView extends UINode implements ISubscriber {
     private setupBindings() {
         this.subscription?.unbind();
         this.subscription = this.beatUnit.addSubscriber(this, "all");
+        this.onMouseUp((ev: MouseEvent) => {
+            if (ev.button === 1) {
+                const currentType = this.beatUnit.getType();
+                this.beatUnit.setType(currentType === BeatUnitType.GhostNote ? BeatUnitType.Normal : BeatUnitType.GhostNote);
+            }
+        });
     }
 
     toggle(): void {
@@ -59,22 +65,15 @@ export default class BeatUnitView extends UINode implements ISubscriber {
         }
     }
 
-    rebuild(): HTMLElement {
+    build(): HTMLElement {
         const classes = ["beat-unit"];
         if (this.beatUnit.isOn()) {
             classes.push("beat-unit-on");
         }
-        this.node = UINode.make("div", {
+        return UINode.make("div", {
             classes: classes,
             oncontextmenu: () => false,
         });
-        this.onMouseUp((ev: MouseEvent) => {
-            if (ev.button === 1) {
-                const currentType = this.beatUnit.getType();
-                this.beatUnit.setType(currentType === BeatUnitType.GhostNote ? BeatUnitType.Normal : BeatUnitType.GhostNote);
-            }
-        });
-        return this.node;
     }
 
     onHover(cb: () => void): void {

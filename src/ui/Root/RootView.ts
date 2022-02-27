@@ -1,8 +1,9 @@
-import UINode, {UINodeOptions} from "../UINode";
-import BeatGroupView from "../BeatGroup/BeatGroupView";
-import BeatGroup from "../../BeatGroup";
+import UINode, {UINodeOptions} from "@/ui/UINode";
+import BeatGroupView from "@/ui/BeatGroup/BeatGroupView";
+import BeatGroup from "@/BeatGroup";
 import "./Root.css";
-import BeatGroupSettingsView from "../BeatGroupSettings/BeatGroupSettingsView";
+import BeatGroupSettingsView from "@/ui/BeatGroupSettings/BeatGroupSettingsView";
+import IconView from "@/ui/Widgets/Icon/IconView";
 
 export type RootUINodeOptions = UINodeOptions & {
     title: string,
@@ -20,7 +21,7 @@ export default class RootView extends UINode {
     constructor(options: RootUINodeOptions) {
         super(options);
         this.mainBeatGroup = options.mainBeatGroup;
-        this.beatGroupView = new BeatGroupView({title: "THE BEAT", beatGroup: this.mainBeatGroup});
+        this.beatGroupView = new BeatGroupView({title: options.title, beatGroup: this.mainBeatGroup});
         this.title = options.title;
     }
 
@@ -32,7 +33,7 @@ export default class RootView extends UINode {
         this.getNode().classList.toggle("vertical-mode");
     }
 
-    rebuild(): HTMLElement {
+    build(): HTMLElement {
         this.beatGroupSettingsView = new BeatGroupSettingsView({beatGroup: this.mainBeatGroup});
         const sidebarMain = UINode.make("div", {
             classes: ["root-settings"],
@@ -41,15 +42,17 @@ export default class RootView extends UINode {
                 this.beatGroupSettingsView.render(),
             ]
         });
-        const sidebarToggle = UINode.make("div", {
+        const sidebarStrip = UINode.make("div", {
             classes: ["root-sidebar-toggle"],
             subs: [
                 UINode.make("div", {
                     classes: ["root-hamburger"],
+                    subs: [new IconView({iconName: "list"}).render()],
                     onclick: () => this.toggleSidebar(),
                 }),
                 UINode.make("div", {
                     classes: ["root-switch-mode"],
+                    subs: [new IconView({iconName: "arrowClockwise"}).render()],
                     onclick: () => this.toggleOrientation(),
                 })
             ]
@@ -58,10 +61,10 @@ export default class RootView extends UINode {
             classes: ["root-sidebar"],
             subs: [
                 sidebarMain,
-                sidebarToggle,
+                sidebarStrip,
             ]
         });
-        this.node = UINode.make("div", {
+        return UINode.make("div", {
             classes: ["root", "sidebar-visible"],
             subs: [
                 this.sidebar,
@@ -78,6 +81,5 @@ export default class RootView extends UINode {
                 })
             ],
         });
-        return this.node;
     }
 }
