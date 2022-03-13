@@ -8,7 +8,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const webpackConfig = {
     mode: "development",
     entry: "./src/main.ts",
-    plugins: [new webpack.ProgressPlugin()],
+    plugins: [new webpack.ProgressPlugin(), new MiniCssExtractPlugin()],
     module: {
         rules: [
             {
