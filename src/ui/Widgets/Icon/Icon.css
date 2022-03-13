@@ -1,8 +1,9 @@
 .icon-view {
+    --icon-bg: black;
     width: 2em;
     height: 2em;
     -webkit-mask-size: 2em;
     mask-size: 2em;
     display: inline-block;
-    background-color: black;
+    background-color: var(--icon-bg);
 }

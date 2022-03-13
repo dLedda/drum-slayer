@@ -13,15 +13,18 @@ export type BeatSettingsViewUINodeOptions = UINodeOptions & {
 
 export default class BeatSettingsView extends UINode implements ISubscriber {
     private beat: Beat;
-    private nameInput!: HTMLInputElement;
-    private deleteButton!: ActionButtonView;
     private loopLengthInput!: NumberInputView;
+    private bakeButton!: ActionButtonView;
     private loopCheckbox!: BoolBoxView;
     private loopLengthSection!: HTMLDivElement;
     private sub!: ISubscription;
+    private titleInput!: HTMLInputElement;
+    private titleDisplay!: HTMLSpanElement;
+    private editingTitle: boolean;
 
     constructor(options: BeatSettingsViewUINodeOptions) {
         super(options);
+        this.editingTitle = false;
         this.beat = options.beat;
         this.setupBindings();
     }
@@ -41,11 +44,13 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
 
     notify<T extends string | number>(publisher: IPublisher<T> | null, event: "all" | T[] | T): void {
         if (event === BeatEvents.NewName) {
-            this.nameInput.value = this.beat.getName();
+            this.titleInput.value = this.beat.getName();
+            this.titleDisplay.innerText = this.beat.getName();
         } else if (event === BeatEvents.LoopLengthChanged) {
             this.loopLengthInput.setValue(this.beat.getLoopLength());
         } else if (event === BeatEvents.DisplayTypeChanged) {
             this.loopCheckbox.setValue(this.beat.isLooping());
+            this.bakeButton.setDisabled(!this.beat.isLooping());
             if (this.beat.isLooping()) {
                 this.loopLengthSection.classList.remove("hide");
             } else {
@@ -55,16 +60,34 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
     }
 
     build(): HTMLElement {
-        this.nameInput = UINode.make("input", {
+        this.titleInput = UINode.make("input", {
             value: this.beat.getName(),
-            classes: ["beat-settings-name-field"],
+            classes: ["beat-settings-title-input"],
             type: "text",
-            oninput: (event: Event) => this.beat.setName((event.target as HTMLInputElement).value),
+            oninput: (event: Event) => {
+                this.beat.setName((event.target as HTMLInputElement).value);
+            },
+            onblur: () => this.titleInput.replaceWith(this.titleDisplay),
+            onkeyup: (event: KeyboardEvent) => {
+                if (event.key === "Enter") {
+                    (event.target as HTMLInputElement).blur();
+                }
+            }
         });
-        this.deleteButton = new ActionButtonView({
-            icon: "trash",
+        this.titleDisplay = UINode.make("div", {
+            innerText: this.beat.getName(),
+            classes: ["beat-settings-title"],
+            onclick: () => {
+                this.titleDisplay.replaceWith(this.titleInput);
+                this.titleInput.focus();
+            }
+        });
+        this.bakeButton = new ActionButtonView({
+            icon: "snowflake",
             type: "secondary",
-            onClick: () => this.beat.delete(),
+            alt: "Bake Loops",
+            disabled: !this.beat.isLooping(),
+            onClick: () => this.beat.bakeLoops(),
         });
         this.loopLengthInput = new NumberInputView({
             initialValue: this.beat.getLoopLength(),
@@ -91,15 +114,26 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         return UINode.make("div", {
             classes: ["beat-settings"],
             subs: [
-                this.nameInput,
+                this.titleDisplay,
                 UINode.make("div", {
-                    classes: ["loop-settings"],
+                    classes: ["beat-settings-lower"],
                     subs: [
-                        this.loopCheckbox.render(),
+                        this.bakeButton.render(),
+                        new ActionButtonView({
+                            icon: "trash",
+                            type: "secondary",
+                            alt: "Delete Track",
+                            onClick: () => this.beat.delete(),
+                        }).render(),
+                        UINode.make("div", {
+                            classes: ["loop-settings"],
+                            subs: [
+                                this.loopCheckbox.render(),
+                            ]
+                        }),
+                        this.loopLengthSection,
                     ]
                 }),
-                this.loopLengthSection,
-                this.deleteButton.render(),
             ],
         });
     }

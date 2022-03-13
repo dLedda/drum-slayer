@@ -1,24 +1,26 @@
 .bool-box {
-    height: 1.1em;
+    height: 1.5em;
+    position: relative;
     white-space: nowrap;
-    margin: 0.5em;
-    line-height: 1em;
+    line-height: 1.5em;
     cursor: pointer;
 }
 
 .bool-box-label {
+    position: relative;
     display: inline-block;
     margin-right: 0.5em;
+    margin-left: 0.5em;
+    top: -0.33em;
     cursor: pointer;
 }
 
 input.bool-box-checkbox[type="checkbox"] {
     position: relative;
     display: inline-block;
-    width: 2em;
-    height: 1em;
+    width: 3em;
+    height: 1.5em;
     padding: 0;
-    top: 0.1em;
     margin: 0;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -27,9 +29,10 @@ input.bool-box-checkbox[type="checkbox"] {
 }
 
 input.bool-box-checkbox[type="checkbox"]::before {
-    width: 2em;
-    height: 1em;
-    margin: 0.1em;
+    top: 0.3em;
+    left: 0.3em;
+    width: 2.3em;
+    height: 0.9em;
     border-radius: 1em;
     background-color: var(--color-ui-accent-active);
     display: inline-block;
@@ -46,21 +49,19 @@ input.bool-box-checkbox[type="checkbox"]:checked::before {
 input.bool-box-checkbox[type="checkbox"]::after {
     box-sizing: border-box;
     position: absolute;
-    width: 1.2em;
-    height: 1.2em;
-    border-radius: 1em;
-    border-color: var(--color-ui-neutral-dark);
-    border-width: 0.075em;
-    border-style: solid;
+    width: 1.35em;
+    height: 1.35em;
+    border-radius: 100%;
     background-color: var(--color-ui-neutral-dark);
     display: block;
     content: "";
-    left: -0.05em;
+    top: 0.075em;
+    left: 0.025em;
     z-index: 1;
     transition: left 200ms, background-color 200ms;
 }
 
 input.bool-box-checkbox[type="checkbox"]:checked::after {
-    left: 1.1em;
+    left: 1.575em;
     background-color: var(--color-ui-neutral-light);
 }

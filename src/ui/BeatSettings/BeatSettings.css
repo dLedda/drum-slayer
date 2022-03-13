@@ -1,41 +1,38 @@
 .beat-settings {
-    margin-bottom: 0.5em;
-    display: flex;
+
+}
+
+.beat-settings-title-input {
+    width: 100%;
+    height: 2em;
+}
+
+.beat-settings-title {
+    width: 100%;
+    font-weight: bold;
+    padding: 0.5em;
+    transition: background-color 200ms;
+    cursor: pointer;
+}
+
+.beat-settings-title:hover {
+    background-color: var(--color-ui-neutral-dark-hover);
+}
+
+.beat-settings-lower {
     height: 3.5em;
+    display: flex;
     text-align: center;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 0.5em;
 }
-
-.beat-settings > * {
+.beat-settings-lower > * {
     margin-right: 0.2em;
 }
-.beat-settings:last-child {
+
+.beat-settings-lower:last-child {
     margin-right: 0;
-}
-
-.beat-settings-time-sig-up {
-    display: block;
-}
-
-.beat-settings-time-sig-down {
-    display: block;
-}
-
-.beat-settings-option {
-    display: inline-block;
-}
-
-.beat-settings-option-group {
-    align-self: stretch;
-}
-
-.beat-settings-time-sig input {
-    margin: auto;
-}
-
-.beat-settings-name-field {
-    width: 5em;
 }
 
 .beat-settings .loop-settings {

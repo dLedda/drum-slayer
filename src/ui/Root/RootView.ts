@@ -47,12 +47,12 @@ export default class RootView extends UINode {
             subs: [
                 UINode.make("div", {
                     classes: ["root-hamburger"],
-                    subs: [new IconView({iconName: "list"}).render()],
+                    subs: [new IconView({iconName: "list", color: "var(--color-ui-neutral-dark)"}).render()],
                     onclick: () => this.toggleSidebar(),
                 }),
                 UINode.make("div", {
                     classes: ["root-switch-mode"],
-                    subs: [new IconView({iconName: "arrowClockwise"}).render()],
+                    subs: [new IconView({iconName: "arrowClockwise", color: "var(--color-ui-neutral-dark)"}).render()],
                     onclick: () => this.toggleOrientation(),
                 })
             ]
