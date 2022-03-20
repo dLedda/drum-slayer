@@ -50,7 +50,7 @@ const webpackConfig = {
 
     output: {
         filename: "bundle.js",
-        publicPath: "/static/",
+        publicPath: "./static/",
         path: path.resolve(__dirname, "./public/static"),
     },
 
