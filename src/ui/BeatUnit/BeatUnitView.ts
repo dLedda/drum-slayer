@@ -12,6 +12,8 @@ export default class BeatUnitView extends UINode implements ISubscriber {
     private beatUnit: BeatUnit;
     private subscription: ISubscription | null = null;
     private publisher: IPublisher<BeatUnitEvents> = new Publisher<BeatUnitEvents, BeatUnitView>(this);
+    private touchTimeout: ReturnType<typeof setTimeout> | null = null;
+
 
     constructor(options: BeatUnitUINodeOptions) {
         super(options);
@@ -29,10 +31,21 @@ export default class BeatUnitView extends UINode implements ISubscriber {
     private setupBindings() {
         this.subscription?.unbind();
         this.subscription = this.beatUnit.addSubscriber(this, "all");
-        this.onMouseUp((ev: MouseEvent) => {
+        this.onMouseDown((ev: MouseEvent) => {
             if (ev.button === 1) {
-                const currentType = this.beatUnit.getType();
-                this.beatUnit.setType(currentType === BeatUnitType.GhostNote ? BeatUnitType.Normal : BeatUnitType.GhostNote);
+                this.beatUnit.rotateType();
+            }
+        });
+        this.getNode().addEventListener("touchstart", () => {
+            this.touchTimeout = setTimeout(() => {
+                this.beatUnit.rotateType();
+                this.touchTimeout = null;
+            }, 600);
+        });
+        this.getNode().addEventListener("touchend", () => {
+            if (this.touchTimeout) {
+                clearTimeout(this.touchTimeout);
+                this.touchTimeout = null;
             }
         });
     }
@@ -55,12 +68,19 @@ export default class BeatUnitView extends UINode implements ISubscriber {
         } else if (event === BeatUnitEvents.Off) {
             this.getNode().classList.remove("beat-unit-on");
         } else if (event === BeatUnitEvents.TypeChange) {
-            const showingAsGhost = this.getNode().classList.contains("beat-unit-ghost");
-            const isGhost = this.beatUnit.getType() === BeatUnitType.GhostNote;
-            if (isGhost && !showingAsGhost) {
-                this.getNode().classList.add("beat-unit-ghost");
-            } else if (!isGhost && showingAsGhost) {
+            switch (this.beatUnit.getType()) {
+            case BeatUnitType.Normal:
                 this.getNode().classList.remove("beat-unit-ghost");
+                this.getNode().classList.remove("beat-unit-accent");
+                break;
+            case BeatUnitType.GhostNote:
+                this.getNode().classList.remove("beat-unit-accent");
+                this.getNode().classList.add("beat-unit-ghost");
+                break;
+            case BeatUnitType.Accent:
+                this.getNode().classList.remove("beat-unit-ghost");
+                this.getNode().classList.add("beat-unit-accent");
+                break;
             }
         }
     }
@@ -77,14 +97,14 @@ export default class BeatUnitView extends UINode implements ISubscriber {
     }
 
     onHover(cb: () => void): void {
-        this.getNode().onmouseover = cb;
+        this.getNode().addEventListener("mouseover", cb);
     }
 
     onMouseDown(cb: (ev: MouseEvent) => void): void {
-        this.getNode().onmousedown = cb;
+        this.getNode().addEventListener("mousedown", cb);
     }
 
     onMouseUp(cb: (ev: MouseEvent) => void): void {
-        this.getNode().onmouseup = cb;
+        this.getNode().addEventListener("mouseup", cb);
     }
 }

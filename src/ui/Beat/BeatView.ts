@@ -2,7 +2,7 @@ import UINode, {UINodeOptions} from "@/ui/UINode";
 import Beat, {BeatEvents} from "@/Beat";
 import {IPublisher} from "@/Publisher";
 import ISubscriber from "@/Subscriber";
-import BeatUnitView from "./BeatUnit/BeatUnitView";
+import BeatUnitView from "@/ui/BeatUnit/BeatUnitView";
 import "./Beat.css";
 
 export type BeatUINodeOptions = UINodeOptions & {

@@ -1,4 +1,4 @@
-import BeatUnit from "@/BeatUnit";
+import BeatUnit, {BeatUnitType} from "@/BeatUnit";
 import {IPublisher, Publisher} from "@/Publisher";
 import ISubscriber from "@/Subscriber";
 import BeatLike from "@/BeatLike";
@@ -22,6 +22,7 @@ export const enum BeatEvents {
     DisplayTypeChanged="BE3",
     LoopLengthChanged="BE4",
     WantsRemoval="BE5",
+    Baked="BE6",
 }
 
 export default class Beat implements IPublisher<BeatEvents>, BeatLike {
@@ -154,9 +155,15 @@ export default class Beat implements IPublisher<BeatEvents>, BeatLike {
     bakeLoops(): void {
         if (this.isLooping()) {
             this.unitRecord.forEach((unit, i) => {
-                unit.setOn(this.getUnitByIndex(i)?.isOn() ?? false);
+                const reprUnitAtPos = this.getUnitByIndex(i);
+                if (reprUnitAtPos) {
+                    unit.mimic(reprUnitAtPos);
+                }
             });
+            this.publisher.notifySubs(BeatEvents.Baked);
             this.setLooping(false);
+        } else {
+            this.publisher.notifySubs(BeatEvents.Baked);
         }
     }
 }

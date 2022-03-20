@@ -64,11 +64,12 @@
     left: 0;
 }
 
-.root-hamburger, .root-switch-mode {
+.root-quick-access-button {
     right: 0;
     width: 2em;
     height: 2em;
     cursor: pointer;
+    margin-bottom: 0.5em;
 }
 
 .root-beat-stage-container {

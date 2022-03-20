@@ -1,6 +1,6 @@
 import UINode, {UINodeOptions} from "@/ui/UINode";
 import BeatGroup, {BeatGroupEvents} from "@/BeatGroup";
-import BeatView from "./Beat/BeatView";
+import BeatView from "@/ui/Beat/BeatView";
 import "./BeatGroup.css";
 import ISubscriber from "@/Subscriber";
 import {IPublisher} from "@/Publisher";
@@ -26,6 +26,12 @@ export default class BeatGroupView extends UINode implements ISubscriber {
         if (event === BeatGroupEvents.BeatListChanged) {
             this.redraw();
         }
+    }
+
+    setBeatGroup(newBeatGroup: BeatGroup): void {
+        this.beatGroup = newBeatGroup;
+        this.beatGroup.addSubscriber(this, BeatGroupEvents.BeatListChanged);
+        this.redraw();
     }
 
     build(): HTMLDivElement {

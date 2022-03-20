@@ -20,35 +20,52 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
     private autoBeatLengthCheckbox!: BoolBoxView;
     private beatSettingsViews: BeatSettingsView[] = [];
     private beatSettingsContainer!: HTMLDivElement;
+    private static readonly EventTypeSubscriptions = [
+        BeatGroupEvents.BarCountChanged,
+        BeatGroupEvents.TimeSigUpChanged,
+        BeatEvents.DisplayTypeChanged,
+        BeatGroupEvents.BeatListChanged,
+        BeatGroupEvents.LockingChanged,
+        BeatGroupEvents.AutoBeatSettingsChanged,
+    ];
 
     constructor(options: BeatGroupSettingsUINodeOptions) {
         super(options);
         this.beatGroup = options.beatGroup;
-        this.beatGroup.addSubscriber(this, [
-            BeatGroupEvents.BarCountChanged,
-            BeatGroupEvents.TimeSigUpChanged,
-            BeatEvents.DisplayTypeChanged,
-            BeatGroupEvents.BeatListChanged,
-            BeatGroupEvents.LockingChanged,
-            BeatGroupEvents.AutoBeatSettingsChanged,
-        ]);
+        this.setupBindings();
     }
 
-    notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
-        if (event === BeatGroupEvents.BarCountChanged) {
+    setBeatGroup(newBeatGroup: BeatGroup): void {
+        this.beatGroup = newBeatGroup;
+        this.setupBindings();
+        BeatGroupSettingsView.EventTypeSubscriptions.forEach(eventType => this.notify(null, eventType));
+    }
+
+    setupBindings(): void {
+        this.beatGroup.addSubscriber(this, BeatGroupSettingsView.EventTypeSubscriptions);
+    }
+
+    notify<T extends string | number>(publisher: IPublisher<T> | null, event: "all" | T[] | T): void {
+        switch(event) {
+        case BeatGroupEvents.BarCountChanged:
             this.barCountInput.setValue(this.beatGroup.getBarCount());
-        } else if (event === BeatGroupEvents.TimeSigUpChanged) {
+            break;
+        case BeatGroupEvents.TimeSigUpChanged:
             this.timeSigUpInput.setValue(this.beatGroup.getTimeSigUp());
-        } else if (event === BeatGroupEvents.BeatListChanged) {
+            break;
+        case BeatGroupEvents.BeatListChanged:
             this.remakeBeatSettingsViews();
-        } else if (event === BeatGroupEvents.LockingChanged) {
+            break;
+        case BeatGroupEvents.LockingChanged:
             if (this.beatGroup.barsLocked()) {
                 this.barCountInput.disable();
             } else {
                 this.barCountInput.enable();
             }
-        } else if (event === BeatGroupEvents.AutoBeatSettingsChanged) {
+            break;
+        case BeatGroupEvents.AutoBeatSettingsChanged:
             this.autoBeatLengthCheckbox.setValue(this.beatGroup.autoBeatLengthOn());
+            break;
         }
     }
 

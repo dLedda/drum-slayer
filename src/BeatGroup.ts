@@ -46,10 +46,17 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
     }
 
     notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
-        if (event === BeatEvents.LoopLengthChanged || event === BeatEvents.DisplayTypeChanged) {
+        switch (event) {
+        case BeatEvents.LoopLengthChanged:
+        case BeatEvents.DisplayTypeChanged:
             this.autoBeatLength();
-        } else if (event === BeatEvents.WantsRemoval) {
+            break;
+        case BeatEvents.WantsRemoval:
             this.removeBeat((publisher as Beat).getKey());
+            break;
+        case BeatEvents.Baked:
+            this.setIsUsingAutoBeatLength(false);
+            break;
         }
     }
 
@@ -213,6 +220,7 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
             BeatEvents.LoopLengthChanged,
             BeatEvents.WantsRemoval,
             BeatEvents.DisplayTypeChanged,
+            BeatEvents.Baked,
         ]);
         this.publisher.notifySubs(BeatGroupEvents.BeatListChanged);
         return newBeat;
@@ -267,6 +275,5 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
 
     bakeLoops(): void {
         this.beats.forEach(beat => beat.bakeLoops());
-        this.setIsUsingAutoBeatLength(false);
     }
 }
