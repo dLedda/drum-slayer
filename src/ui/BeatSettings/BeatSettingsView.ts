@@ -1,8 +1,8 @@
 import "./BeatSettings.css";
 import Beat, {BeatEvents} from "@/Beat";
 import UINode, {UINodeOptions} from "@/ui/UINode";
-import ISubscriber from "@/Subscriber";
-import {IPublisher, ISubscription} from "@/Publisher";
+import ISubscriber, {SubscriptionEvent} from "@/Subscriber";
+import {ISubscription} from "@/Publisher";
 import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
 import BoolBoxView from "@/ui/Widgets/BoolBox/BoolBoxView";
 import ActionButtonView from "@/ui/Widgets/ActionButton/ActionButtonView";
@@ -11,7 +11,13 @@ export type BeatSettingsViewUINodeOptions = UINodeOptions & {
     beat: Beat,
 };
 
-export default class BeatSettingsView extends UINode implements ISubscriber {
+const EventTypeSubscriptions = [
+    BeatEvents.NewName,
+    BeatEvents.LoopLengthChanged,
+    BeatEvents.DisplayTypeChanged,
+];
+
+export default class BeatSettingsView extends UINode implements ISubscriber<typeof EventTypeSubscriptions> {
     private beat: Beat;
     private loopLengthInput!: NumberInputView;
     private bakeButton!: ActionButtonView;
@@ -37,18 +43,19 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         this.sub.unbind();
         this.beat = beat;
         this.setupBindings();
-        this.notify(null, BeatEvents.NewName);
-        this.notify(null, BeatEvents.LoopLengthChanged);
-        this.notify(null, BeatEvents.DisplayTypeChanged);
+        EventTypeSubscriptions.forEach(eventType => this.notify(null, eventType));
     }
 
-    notify<T extends string | number>(publisher: IPublisher<T> | null, event: "all" | T[] | T): void {
-        if (event === BeatEvents.NewName) {
+    notify(publisher: unknown, event: SubscriptionEvent<typeof EventTypeSubscriptions>): void {
+        switch(event) {
+        case BeatEvents.NewName:
             this.titleInput.value = this.beat.getName();
             this.titleDisplay.innerText = this.beat.getName();
-        } else if (event === BeatEvents.LoopLengthChanged) {
+            break;
+        case BeatEvents.LoopLengthChanged:
             this.loopLengthInput.setValue(this.beat.getLoopLength());
-        } else if (event === BeatEvents.DisplayTypeChanged) {
+            break;
+        case BeatEvents.DisplayTypeChanged:
             this.loopCheckbox.setValue(this.beat.isLooping());
             this.bakeButton.setDisabled(!this.beat.isLooping());
             if (this.beat.isLooping()) {
@@ -56,6 +63,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
             } else {
                 this.loopLengthSection.classList.add("hide");
             }
+            break;
         }
     }
 
@@ -102,10 +110,9 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         });
         this.loopLengthSection = UINode.make("div", {
             classes: ["loop-settings-option"],
-            subs: [
-                this.loopLengthInput.render(),
-            ],
-        });
+        }, [
+            this.loopLengthInput.render(),
+        ]);
         if (this.beat.isLooping()) {
             this.loopLengthSection.classList.remove("hide");
         } else {
@@ -113,28 +120,25 @@ export default class BeatSettingsView extends UINode implements ISubscriber {
         }
         return UINode.make("div", {
             classes: ["beat-settings"],
-            subs: [
-                this.titleDisplay,
+        }, [
+            this.titleDisplay,
+            UINode.make("div", {
+                classes: ["beat-settings-lower"],
+            }, [
+                this.bakeButton.render(),
+                new ActionButtonView({
+                    icon: "trash",
+                    type: "secondary",
+                    alt: "Delete Track",
+                    onClick: () => this.beat.delete(),
+                }).render(),
                 UINode.make("div", {
-                    classes: ["beat-settings-lower"],
-                    subs: [
-                        this.bakeButton.render(),
-                        new ActionButtonView({
-                            icon: "trash",
-                            type: "secondary",
-                            alt: "Delete Track",
-                            onClick: () => this.beat.delete(),
-                        }).render(),
-                        UINode.make("div", {
-                            classes: ["loop-settings"],
-                            subs: [
-                                this.loopCheckbox.render(),
-                            ]
-                        }),
-                        this.loopLengthSection,
-                    ]
-                }),
-            ],
-        });
+                    classes: ["loop-settings"],
+                }, [
+                    this.loopCheckbox.render(),
+                ]),
+                this.loopLengthSection,
+            ]),
+        ]);
     }
 }

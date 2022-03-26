@@ -1,6 +1,5 @@
 import UINode, {UINodeOptions} from "@/ui/UINode";
 import Beat, {BeatEvents} from "@/Beat";
-import {IPublisher} from "@/Publisher";
 import ISubscriber from "@/Subscriber";
 import BeatUnitView from "@/ui/BeatUnit/BeatUnitView";
 import "./Beat.css";
@@ -9,7 +8,17 @@ export type BeatUINodeOptions = UINodeOptions & {
     beat: Beat,
 };
 
-export default class BeatView extends UINode implements ISubscriber {
+const EventTypeSubscriptions = [
+    BeatEvents.NewName,
+    BeatEvents.NewTimeSig,
+    BeatEvents.NewBarCount,
+    BeatEvents.DisplayTypeChanged,
+    BeatEvents.LoopLengthChanged,
+];
+
+type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
+
+export default class BeatView extends UINode implements ISubscriber<EventTypeSubscriptions> {
     private beat: Beat;
     private title!: HTMLHeadingElement;
     private beatUnitViews: BeatUnitView[] = [];
@@ -34,20 +43,20 @@ export default class BeatView extends UINode implements ISubscriber {
     }
 
     private setupBindings() {
-        this.beat.addSubscriber(this, "all");
+        this.beat.addSubscriber(this, EventTypeSubscriptions);
     }
 
-    notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
-        if (event === BeatEvents.NewName) {
+    notify(publisher: unknown, event: EventTypeSubscriptions): void {
+        switch (event) {
+        case BeatEvents.NewName:
             this.title.innerText = this.beat.getName();
-        } else if (event === BeatEvents.NewTimeSig) {
+            break;
+        case BeatEvents.NewTimeSig:
+        case BeatEvents.NewBarCount:
+        case BeatEvents.DisplayTypeChanged:
+        case BeatEvents.LoopLengthChanged:
             this.setupBeatUnits();
-        } else if (event === BeatEvents.NewBarCount) {
-            this.setupBeatUnits();
-        } else if (event === BeatEvents.DisplayTypeChanged) {
-            this.setupBeatUnits();
-        } else if (event === BeatEvents.LoopLengthChanged) {
-            this.setupBeatUnits();
+            break;
         }
     }
 
@@ -91,8 +100,9 @@ export default class BeatView extends UINode implements ISubscriber {
         } else {
             this.beatUnitViewBlock = UINode.make("div", {
                 classes: ["beat-unit-block"],
-                subs: [...beatUnitNodes],
-            });
+            }, [
+                ...beatUnitNodes
+            ]);
         }
     }
 
@@ -140,16 +150,14 @@ export default class BeatView extends UINode implements ISubscriber {
         }
         return UINode.make("div", {
             classes: ["beat"],
-            subs: [
-                UINode.make("div", {
-                    classes: ["beat-main"],
-                    subs: [
-                        this.title,
-                        this.beatUnitViewBlock,
-                    ]
-                }),
-            ],
-        });
+        }, [
+            UINode.make("div", {
+                classes: ["beat-main"],
+            }, [
+                this.title,
+                this.beatUnitViewBlock,
+            ]),
+        ]);
     }
 }
 

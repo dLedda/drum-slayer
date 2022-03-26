@@ -50,19 +50,21 @@ export default abstract class UINode {
             T extends keyof HTMLElementTagNameMap,
             K extends keyof HTMLElementTagNameMap[T]>(
         type: T,
-        attributes: IRenderAttributes<T, K>
+        attributes: IRenderAttributes<T, K>,
+        subElements?: HTMLElement[],
     ): HTMLElementTagNameMap[T] {
         const element = document.createElement(type);
         if (attributes) {
             for (const key in attributes) {
                 if (key === "classes") {
                     element.classList.add(...attributes[key]!);
-                } else if (key === "subs") {
-                    element.append(...attributes.subs!);
                 } else {
                     element[key as keyof HTMLElementTagNameMap[T]] = (attributes as any)[key];
                 }
             }
+        }
+        if (subElements) {
+            element.append(...subElements);
         }
         return element;
     }

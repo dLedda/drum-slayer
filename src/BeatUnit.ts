@@ -1,28 +1,27 @@
-import {IPublisher, ISubscription, Publisher} from "./Publisher";
+import {IPublisher, Publisher} from "./Publisher";
 import ISubscriber from "./Subscriber";
 
-export enum BeatUnitType {
-    Normal,
-    GhostNote,
-    Accent,
+export const enum BeatUnitType {
+    Normal="but-0",
+    GhostNote="but-1",
+    Accent="but-2",
+}
+
+export const enum BeatUnitEvent {
+    Toggle="bue-0",
+    On="bue-1",
+    Off="bue-2",
+    TypeChange="bue-3",
 }
 
 
-export const enum BeatUnitEvents {
-    Toggle,
-    On,
-    Off,
-    TypeChange,
-}
-
-
-export default class BeatUnit implements IPublisher<BeatUnitEvents> {
+export default class BeatUnit implements IPublisher<BeatUnitEvent> {
     private static readonly TypeRotation = [
         BeatUnitType.Normal,
         BeatUnitType.GhostNote,
         BeatUnitType.Accent,
     ] as const;
-    private publisher: Publisher<BeatUnitEvents, BeatUnit> = new Publisher<BeatUnitEvents, BeatUnit>(this);
+    private publisher: Publisher<BeatUnitEvent, BeatUnit> = new Publisher<BeatUnitEvent, BeatUnit>(this);
     private on = false;
     private typeIndex = 0;
 
@@ -31,28 +30,28 @@ export default class BeatUnit implements IPublisher<BeatUnitEvents> {
         this.setType(type);
     }
 
-    addSubscriber(subscriber: ISubscriber, eventType: "all" | BeatUnitEvents | BeatUnitEvents[]): ISubscription {
+    addSubscriber(subscriber: ISubscriber<BeatUnitEvent>, eventType: BeatUnitEvent[]): { unbind: () => void } {
         return this.publisher.addSubscriber(subscriber, eventType);
     }
 
     toggle(): void {
         this.on = !this.on;
-        this.publisher.notifySubs(BeatUnitEvents.Toggle);
+        this.publisher.notifySubs(BeatUnitEvent.Toggle);
         if (this.on) {
-            this.publisher.notifySubs(BeatUnitEvents.On);
+            this.publisher.notifySubs(BeatUnitEvent.On);
         } else {
-            this.publisher.notifySubs(BeatUnitEvents.Off);
+            this.publisher.notifySubs(BeatUnitEvent.Off);
         }
     }
 
     setOn(on: boolean): void {
         this.on = on;
-        this.publisher.notifySubs(this.on ? BeatUnitEvents.On : BeatUnitEvents.Off);
+        this.publisher.notifySubs(this.on ? BeatUnitEvent.On : BeatUnitEvent.Off);
     }
 
     setType(type: BeatUnitType): void {
         this.typeIndex = BeatUnit.TypeRotation.indexOf(type);
-        this.publisher.notifySubs(BeatUnitEvents.TypeChange);
+        this.publisher.notifySubs(BeatUnitEvent.TypeChange);
     }
 
     getType(): BeatUnitType {
@@ -65,7 +64,7 @@ export default class BeatUnit implements IPublisher<BeatUnitEvents> {
         } else {
             this.typeIndex += 1;
         }
-        this.publisher.notifySubs(BeatUnitEvents.TypeChange);
+        this.publisher.notifySubs(BeatUnitEvent.TypeChange);
     }
 
     isOn(): boolean {

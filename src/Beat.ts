@@ -1,4 +1,4 @@
-import BeatUnit, {BeatUnitType} from "@/BeatUnit";
+import BeatUnit from "@/BeatUnit";
 import {IPublisher, Publisher} from "@/Publisher";
 import ISubscriber from "@/Subscriber";
 import BeatLike from "@/BeatLike";
@@ -16,13 +16,13 @@ export type BeatInitOptions = {
 };
 
 export const enum BeatEvents {
-    NewTimeSig="BE0",
-    NewBarCount="BE1",
-    NewName="BE2",
-    DisplayTypeChanged="BE3",
-    LoopLengthChanged="BE4",
-    WantsRemoval="BE5",
-    Baked="BE6",
+    NewTimeSig="be-0",
+    NewBarCount="be-1",
+    NewName="be-2",
+    DisplayTypeChanged="be-3",
+    LoopLengthChanged="be-4",
+    WantsRemoval="be-5",
+    Baked="be-6",
 }
 
 export default class Beat implements IPublisher<BeatEvents>, BeatLike {
@@ -60,7 +60,7 @@ export default class Beat implements IPublisher<BeatEvents>, BeatLike {
         this.publisher.notifySubs(BeatEvents.DisplayTypeChanged);
     }
 
-    addSubscriber(subscriber: ISubscriber, eventType: BeatEvents | BeatEvents[] | "all"): { unbind: () => void } {
+    addSubscriber(subscriber: ISubscriber<BeatEvents>, eventType: BeatEvents | BeatEvents[]): { unbind: () => void } {
         return this.publisher.addSubscriber(subscriber, eventType);
     }
 

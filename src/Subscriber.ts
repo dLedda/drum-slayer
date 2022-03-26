@@ -1,3 +1,4 @@
-export default interface ISubscriber {
-    notify<T extends string | number>(publisher: unknown, event: T | "all" | T[]): void;
+export type LEvent = string;
+export default interface ISubscriber<T extends LEvent> {
+    notify(publisher: unknown, event: T): void;
 }

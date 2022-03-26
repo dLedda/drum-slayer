@@ -1,10 +1,10 @@
-import ISubscriber from "./Subscriber";
+import ISubscriber, {LEvent} from "./Subscriber";
 
-class Subscription<T extends (string | number), P> implements ISubscription {
-    private subscriber: ISubscriber;
-    private readonly eventTypes: T[];
-    private publisher: Publisher<T, P>;
-    constructor(publisher: Publisher<T, P>, subscriber: ISubscriber, eventTypes: T[]) {
+class Subscription<EventType extends LEvent, PublisherType> implements ISubscription {
+    private subscriber: ISubscriber<EventType>;
+    private readonly eventTypes: EventType[];
+    private publisher: Publisher<EventType, PublisherType>;
+    constructor(publisher: Publisher<EventType, PublisherType>, subscriber: ISubscriber<EventType>, eventTypes: EventType[]) {
         this.subscriber = subscriber;
         this.publisher = publisher;
         this.eventTypes = eventTypes;
@@ -14,32 +14,36 @@ class Subscription<T extends (string | number), P> implements ISubscription {
         this.publisher.unbind(this);
     }
 
-    getEventTypes(): T[] {
+    getEventTypes(): EventType[] {
         return this.eventTypes;
     }
 
-    getSubscriber(): ISubscriber {
+    getSubscriber(): ISubscriber<EventType> {
         return this.subscriber;
     }
 }
 
+interface EventSubscriberRecord<T extends LEvent> {
+    get<K extends T>(key: K): ISubscriber<K>[];
+    set<K extends T>(key: K, subscribers: ISubscriber<K>[]): EventSubscriberRecord<T>;
+}
 
-export class Publisher<T extends (string | number), P> implements IPublisher<T> {
-    private subscribers: Map<T | "all", ISubscriber[]>;
-    private parent: P;
 
-    constructor(parent: P) {
+export class Publisher<EventType extends LEvent, PublisherType> implements IPublisher<EventType> {
+    private subscribers: EventSubscriberRecord<EventType>;
+    private parent: PublisherType;
+
+    constructor(parent: PublisherType) {
         this.parent = parent;
         this.subscribers = new Map();
-        this.subscribers.set("all", []);
     }
 
-    addSubscriber(subscriber: ISubscriber, eventType: (T | "all") | T[]): ISubscription {
-        let eventTypes: (T | "all")[] = [];
-        if (!Array.isArray(eventType)) {
-            eventTypes.push(eventType);
+    addSubscriber(subscriber: ISubscriber<EventType>, subscribeTo: EventType | EventType[]): ISubscription {
+        let eventTypes: EventType[] = [];
+        if (!Array.isArray(subscribeTo)) {
+            eventTypes.push(subscribeTo);
         } else {
-            eventTypes = eventType as (T | "all")[];
+            eventTypes = subscribeTo;
         }
         for (const key of eventTypes) {
             this.getSubscribers(key).push(subscriber);
@@ -47,17 +51,17 @@ export class Publisher<T extends (string | number), P> implements IPublisher<T> 
         return new Subscription(this, subscriber, eventTypes);
     }
 
-    unbind(subscription: Subscription<T, P>): void {
+    unbind(subscription: Subscription<EventType, PublisherType>): void {
         for (const key of subscription.getEventTypes()) {
             const subs = this.getSubscribers(key);
             subs.splice(subs.indexOf(subscription.getSubscriber()), 1);
         }
     }
 
-    private getSubscribers(key: T | "all"): ISubscriber[] {
+    private getSubscribers<K extends EventType>(key: K): ISubscriber<K>[] {
         const subscribersList = this.subscribers.get(key);
         if (subscribersList === undefined) {
-            const newList: ISubscriber[] = [];
+            const newList: ISubscriber<K>[] = [];
             this.subscribers.set(key, newList);
             return newList;
         } else {
@@ -65,18 +69,15 @@ export class Publisher<T extends (string | number), P> implements IPublisher<T> 
         }
     }
 
-    notifySubs(eventType: T): void {
+    notifySubs<K extends EventType>(eventType: K): void {
         for (const sub of this.getSubscribers(eventType)) {
-            sub.notify(this.parent, eventType);
-        }
-        for (const sub of this.getSubscribers("all")) {
             sub.notify(this.parent, eventType);
         }
     }
 }
 
-export interface IPublisher<T extends string | number> {
-    addSubscriber(subscriber: ISubscriber, eventType: (T | "all") | T[]): {unbind: () => void};
+export interface IPublisher<T extends LEvent> {
+    addSubscriber(subscriber: ISubscriber<T>, subscribeTo: T | T[]): {unbind: () => void};
 }
 
 export interface ISubscription {

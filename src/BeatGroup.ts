@@ -14,17 +14,25 @@ type BeatGroupInitOptions = {
 };
 
 export const enum BeatGroupEvents {
-    BeatOrderChanged="BGE0",
-    BeatListChanged="BGE1",
-    BarCountChanged="BGE2",
-    TimeSigUpChanged="BGE3",
-    AutoBeatSettingsChanged="BGE4",
-    LockingChanged="BGE5",
+    BeatOrderChanged="bge-0",
+    BeatListChanged="bge-1",
+    BarCountChanged="bge-2",
+    TimeSigUpChanged="bge-3",
+    AutoBeatSettingsChanged="bge-4",
+    LockingChanged="bge-5",
 }
 
-export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvents>, BeatLike, ISubscriber {
+type EventTypeSubscriptions =
+    | BeatEvents.LoopLengthChanged
+    | BeatEvents.DisplayTypeChanged
+    | BeatEvents.WantsRemoval
+    | BeatEvents.Baked;
+
+type EventTypePublications = BeatGroupEvents | BeatEvents;
+
+export default class BeatGroup implements IPublisher<EventTypePublications>, BeatLike, ISubscriber<EventTypeSubscriptions> {
     private beats: Beat[] = [];
-    private publisher: Publisher<BeatGroupEvents | BeatEvents, BeatGroup> = new Publisher<BeatGroupEvents | BeatEvents, BeatGroup>(this);
+    private publisher: Publisher<EventTypePublications, BeatGroup> = new Publisher<EventTypePublications, BeatGroup>(this);
     private barCount: number;
     private timeSigUp: number;
     private globalLoopLength: number;
@@ -45,7 +53,7 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
         this.useAutoBeatLength = options?.useAutoBeatLength ?? false;
     }
 
-    notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
+    notify(publisher: unknown, event: EventTypeSubscriptions): void {
         switch (event) {
         case BeatEvents.LoopLengthChanged:
         case BeatEvents.DisplayTypeChanged:
@@ -60,7 +68,7 @@ export default class BeatGroup implements IPublisher<BeatGroupEvents | BeatEvent
         }
     }
 
-    addSubscriber(subscriber: ISubscriber, eventType: "all" | BeatGroupEvents | BeatEvents | (BeatGroupEvents | BeatEvents)[]): { unbind: () => void } {
+    addSubscriber(subscriber: ISubscriber<EventTypePublications>, eventType: SubscriptionEvent<EventTypePublications>): { unbind: () => void } {
         return this.publisher.addSubscriber(subscriber, eventType);
     }
 

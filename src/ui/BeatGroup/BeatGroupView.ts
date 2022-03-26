@@ -3,14 +3,18 @@ import BeatGroup, {BeatGroupEvents} from "@/BeatGroup";
 import BeatView from "@/ui/Beat/BeatView";
 import "./BeatGroup.css";
 import ISubscriber from "@/Subscriber";
-import {IPublisher} from "@/Publisher";
 
 export type BeatGroupUINodeOptions = UINodeOptions & {
     title: string,
     beatGroup: BeatGroup,
 };
 
-export default class BeatGroupView extends UINode implements ISubscriber {
+const EventTypeSubscriptions = [
+    BeatGroupEvents.BeatListChanged
+];
+type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
+
+export default class BeatGroupView extends UINode implements ISubscriber<EventTypeSubscriptions> {
     private title: string;
     private beatGroup: BeatGroup;
     private beatViews: BeatView[] = [];
@@ -22,7 +26,7 @@ export default class BeatGroupView extends UINode implements ISubscriber {
         this.beatGroup.addSubscriber(this, BeatGroupEvents.BeatListChanged);
     }
 
-    notify<T extends string | number>(publisher: IPublisher<T>, event: "all" | T[] | T): void {
+    notify(publisher: unknown, event: EventTypeSubscriptions): void {
         if (event === BeatGroupEvents.BeatListChanged) {
             this.redraw();
         }
@@ -41,9 +45,8 @@ export default class BeatGroupView extends UINode implements ISubscriber {
         }
         return UINode.make("div", {
             classes: ["beat-group"],
-            subs: [
-                ...this.beatViews.map(bv => bv.render())
-            ],
-        });
+        },[
+            ...this.beatViews.map(bv => bv.render())
+        ]);
     }
 }

@@ -15,13 +15,13 @@ export default class RootView extends UINode {
     private beatGroupView: BeatGroupView;
     private mainBeatGroup: BeatGroup;
     private beatGroupSettingsView!: BeatGroupSettingsView;
-    private sidebar!: HTMLDivElement;
 
 
     constructor(options: RootUINodeOptions) {
         super(options);
         this.mainBeatGroup = options.mainBeatGroup ?? RootView.defaultMainBeatGroup();
         this.beatGroupView = new BeatGroupView({title: options.title, beatGroup: this.mainBeatGroup});
+        this.beatGroupSettingsView = new BeatGroupSettingsView({beatGroup: this.mainBeatGroup});
         this.title = options.title;
     }
 
@@ -47,68 +47,77 @@ export default class RootView extends UINode {
         this.getNode().classList.toggle("vertical-mode");
     }
 
-    build(): HTMLElement {
-        this.beatGroupSettingsView = new BeatGroupSettingsView({beatGroup: this.mainBeatGroup});
-        const sidebarMain = UINode.make("div", {
-            classes: ["root-settings"],
-            subs: [
-                UINode.make("h1", {innerText: this.title, classes: ["root-title"]}),
-                this.beatGroupSettingsView.render(),
-            ]
-        });
-        const sidebarStrip = UINode.make("div", {
-            classes: ["root-sidebar-toggle"],
-            subs: [
-                UINode.make("div", {
-                    classes: ["root-quick-access-button"],
-                    subs: [new IconView({iconName: "list", color: "var(--color-ui-neutral-dark)"}).render()],
-                    onclick: () => this.toggleSidebar(),
-                }),
-                UINode.make("div", {
-                    classes: ["root-quick-access-button"],
-                    subs: [new IconView({iconName: "arrowClockwise", color: "var(--color-ui-neutral-dark)"}).render()],
-                    onclick: () => this.toggleOrientation(),
-                }),
-                UINode.make("div", {
-                    classes: ["root-quick-access-button"],
-                    subs: [new IconView({iconName: "snowflake", color: "var(--color-ui-neutral-dark)"}).render()],
-                    onclick: () => this.mainBeatGroup.bakeLoops(),
-                }),
-                UINode.make("div", {
-                    classes: ["root-quick-access-button"],
-                    title: "Reset all",
-                    subs: [new IconView({iconName: "trash", color: "var(--color-ui-neutral-dark)"}).render()],
-                    onclick: () => {
-                        this.mainBeatGroup = RootView.defaultMainBeatGroup();
-                        this.beatGroupSettingsView.setBeatGroup(this.mainBeatGroup);
-                        this.beatGroupView.setBeatGroup(this.mainBeatGroup);
-                    },
-                }),
-            ]
-        });
-        this.sidebar = UINode.make("div", {
-            classes: ["root-sidebar"],
-            subs: [
-                sidebarMain,
-                sidebarStrip,
-            ]
-        });
+    private buildSidebarStrip(): HTMLElement {
         return UINode.make("div", {
-            classes: ["root", "sidebar-visible"],
-            subs: [
-                this.sidebar,
-                UINode.make("div", {
-                    classes: ["root-beat-stage-container"],
-                    subs: [
-                        UINode.make("div", {
-                            classes: ["root-beat-stage"],
-                            subs: [
-                                this.beatGroupView.render(),
-                            ],
-                        })
-                    ]
-                })
-            ],
-        });
+            classes: ["root-sidebar-toggle"],
+        }, [
+            UINode.make("div", {
+                classes: ["root-quick-access-button"],
+                onclick: () => this.toggleSidebar(),
+            }, [
+                new IconView({
+                    iconName: "list",
+                    color: "var(--color-ui-neutral-dark)"
+                }).render()
+            ]),
+            UINode.make("div", {
+                classes: ["root-quick-access-button"],
+                onclick: () => this.toggleOrientation(),
+            }, [
+                new IconView({
+                    iconName: "arrowClockwise",
+                    color: "var(--color-ui-neutral-dark)"
+                }).render(),
+            ]),
+            UINode.make("div", {
+                classes: ["root-quick-access-button"],
+                onclick: () => this.mainBeatGroup.bakeLoops(),
+            }, [
+                new IconView({
+                    iconName: "snowflake",
+                    color: "var(--color-ui-neutral-dark)"
+                }).render(),
+            ]),
+            UINode.make("div", {
+                classes: ["root-quick-access-button"],
+                title: "Reset all",
+                onclick: () => {
+                    this.mainBeatGroup = RootView.defaultMainBeatGroup();
+                    this.beatGroupSettingsView.setBeatGroup(this.mainBeatGroup);
+                    this.beatGroupView.setBeatGroup(this.mainBeatGroup);
+                },
+            }, [
+                new IconView({
+                    iconName: "trash",
+                    color: "var(--color-ui-neutral-dark)"
+                }).render()
+            ]),
+        ]);
+    }
+
+    private buildSidebar(): HTMLElement {
+        return (
+            UINode.make("div", {classes: ["root-sidebar"]}, [
+                UINode.make("div", {classes: ["root-settings"]}, [
+                    UINode.make("h1", {classes: ["root-title"], innerText: this.title}, [
+                        this.beatGroupSettingsView.render(),
+                    ]),
+                    this.buildSidebarStrip(),
+                ]),
+            ])
+        );
+    }
+
+    build(): HTMLElement {
+        return (
+            UINode.make("div", {classes: ["root", "sidebar-visible"]}, [
+                this.buildSidebar(),
+                UINode.make("div", {classes: ["root-beat-stage-container"]}, [
+                    UINode.make("div", {classes: ["root-beat-stage"]}, [
+                        this.beatGroupView.render(),
+                    ])
+                ])
+            ])
+        );
     }
 }
