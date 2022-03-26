@@ -101,32 +101,31 @@ export default class NumberInputView extends UINode {
         });
         return UINode.make("div", {
             classes: ["number-input"],
-            subs: [
-                this.labelElement,
-                UINode.make("button", {
-                    innerText: "-",
-                    classes: ["number-input-button", "number-input-dec"],
-                    onclick: () => {
-                        if (this.onDecrement) {
-                            this.onDecrement();
-                        } else if (this.setter && this.getter) {
-                            this.setter(this.getter() - 1);
-                        }
-                    },
-                }),
-                this.inputElement,
-                UINode.make("button", {
-                    innerText: "+",
-                    classes: ["number-input-button", "number-input-inc"],
-                    onclick: () => {
-                        if (this.onIncrement) {
-                            this.onIncrement();
-                        } else if (this.setter && this.getter) {
-                            this.setter(this.getter() + 1);
-                        }
-                    },
-                }),
-            ],
-        });
+        }, [
+            this.labelElement,
+            UINode.make("button", {
+                innerText: "-",
+                classes: ["number-input-button", "number-input-dec"],
+                onclick: () => {
+                    if (this.onDecrement) {
+                        this.onDecrement();
+                    } else if (this.setter && this.getter) {
+                        this.setter(this.getter() - 1);
+                    }
+                },
+            }),
+            this.inputElement,
+            UINode.make("button", {
+                innerText: "+",
+                classes: ["number-input-button", "number-input-inc"],
+                onclick: () => {
+                    if (this.onIncrement) {
+                        this.onIncrement();
+                    } else if (this.setter && this.getter) {
+                        this.setter(this.getter() + 1);
+                    }
+                },
+            }),
+        ]);
     }
 }

@@ -1,11 +1,12 @@
 import "./BeatSettings.css";
 import Beat, {BeatEvents} from "@/Beat";
 import UINode, {UINodeOptions} from "@/ui/UINode";
-import ISubscriber, {SubscriptionEvent} from "@/Subscriber";
+import ISubscriber from "@/Subscriber";
 import {ISubscription} from "@/Publisher";
 import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
 import BoolBoxView from "@/ui/Widgets/BoolBox/BoolBoxView";
 import ActionButtonView from "@/ui/Widgets/ActionButton/ActionButtonView";
+import EditableTextFieldView from "@/ui/Widgets/EditableTextFIeld/EditableTextFieldView";
 
 export type BeatSettingsViewUINodeOptions = UINodeOptions & {
     beat: Beat,
@@ -16,16 +17,16 @@ const EventTypeSubscriptions = [
     BeatEvents.LoopLengthChanged,
     BeatEvents.DisplayTypeChanged,
 ];
+type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
 
-export default class BeatSettingsView extends UINode implements ISubscriber<typeof EventTypeSubscriptions> {
+export default class BeatSettingsView extends UINode implements ISubscriber<EventTypeSubscriptions> {
     private beat: Beat;
     private loopLengthInput!: NumberInputView;
     private bakeButton!: ActionButtonView;
     private loopCheckbox!: BoolBoxView;
     private loopLengthSection!: HTMLDivElement;
     private sub!: ISubscription;
-    private titleInput!: HTMLInputElement;
-    private titleDisplay!: HTMLSpanElement;
+    private title!: EditableTextFieldView;
     private editingTitle: boolean;
 
     constructor(options: BeatSettingsViewUINodeOptions) {
@@ -36,7 +37,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber<type
     }
 
     private setupBindings() {
-        this.sub = this.beat.addSubscriber(this, "all");
+        this.sub = this.beat.addSubscriber(this, EventTypeSubscriptions);
     }
 
     setBeat(beat: Beat): void {
@@ -46,11 +47,10 @@ export default class BeatSettingsView extends UINode implements ISubscriber<type
         EventTypeSubscriptions.forEach(eventType => this.notify(null, eventType));
     }
 
-    notify(publisher: unknown, event: SubscriptionEvent<typeof EventTypeSubscriptions>): void {
+    notify(publisher: unknown, event: EventTypeSubscriptions): void {
         switch(event) {
         case BeatEvents.NewName:
-            this.titleInput.value = this.beat.getName();
-            this.titleDisplay.innerText = this.beat.getName();
+            this.title.setText(this.beat.getName());
             break;
         case BeatEvents.LoopLengthChanged:
             this.loopLengthInput.setValue(this.beat.getLoopLength());
@@ -68,27 +68,9 @@ export default class BeatSettingsView extends UINode implements ISubscriber<type
     }
 
     build(): HTMLElement {
-        this.titleInput = UINode.make("input", {
-            value: this.beat.getName(),
-            classes: ["beat-settings-title-input"],
-            type: "text",
-            oninput: (event: Event) => {
-                this.beat.setName((event.target as HTMLInputElement).value);
-            },
-            onblur: () => this.titleInput.replaceWith(this.titleDisplay),
-            onkeyup: (event: KeyboardEvent) => {
-                if (event.key === "Enter") {
-                    (event.target as HTMLInputElement).blur();
-                }
-            }
-        });
-        this.titleDisplay = UINode.make("div", {
-            innerText: this.beat.getName(),
-            classes: ["beat-settings-title"],
-            onclick: () => {
-                this.titleDisplay.replaceWith(this.titleInput);
-                this.titleInput.focus();
-            }
+        this.title = new EditableTextFieldView({
+            initialText: this.beat.getName(),
+            setter: (newText) => this.beat.setName(newText),
         });
         this.bakeButton = new ActionButtonView({
             icon: "snowflake",
@@ -121,11 +103,15 @@ export default class BeatSettingsView extends UINode implements ISubscriber<type
         return UINode.make("div", {
             classes: ["beat-settings"],
         }, [
-            this.titleDisplay,
+            UINode.make("div", {
+                classes: ["beat-settings-title-container"]
+            }, [
+                this.title,
+            ]),
             UINode.make("div", {
                 classes: ["beat-settings-lower"],
             }, [
-                this.bakeButton.render(),
+                this.bakeButton,
                 new ActionButtonView({
                     icon: "trash",
                     type: "secondary",
@@ -135,7 +121,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber<type
                 UINode.make("div", {
                     classes: ["loop-settings"],
                 }, [
-                    this.loopCheckbox.render(),
+                    this.loopCheckbox,
                 ]),
                 this.loopLengthSection,
             ]),

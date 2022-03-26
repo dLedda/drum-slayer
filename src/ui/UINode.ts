@@ -13,7 +13,7 @@ type IRenderAttributes<
 export default abstract class UINode {
     protected node: HTMLElement | null = null;
 
-    constructor(options: UINodeOptions) {}
+    constructor(options: UINodeOptions) { /* dummy */ }
 
     render(): HTMLElement {
         if (!this.node) {
@@ -51,7 +51,7 @@ export default abstract class UINode {
             K extends keyof HTMLElementTagNameMap[T]>(
         type: T,
         attributes: IRenderAttributes<T, K>,
-        subElements?: HTMLElement[],
+        subNodes?: (Node | UINode)[],
     ): HTMLElementTagNameMap[T] {
         const element = document.createElement(type);
         if (attributes) {
@@ -63,8 +63,14 @@ export default abstract class UINode {
                 }
             }
         }
-        if (subElements) {
-            element.append(...subElements);
+        if (subNodes) {
+            for (const subElement of subNodes) {
+                if (subElement instanceof UINode) {
+                    element.append(subElement.render());
+                } else {
+                    element.append(subElement);
+                }
+            }
         }
         return element;
     }

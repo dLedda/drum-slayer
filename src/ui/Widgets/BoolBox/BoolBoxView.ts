@@ -55,10 +55,9 @@ export default class BoolBoxView extends UINode {
         });
         return UINode.make("div", {
             classes: ["bool-box"],
-            subs: [
-                this.labelElement,
-                this.checkboxElement,
-            ],
-        });
+        },[
+            this.labelElement,
+            this.checkboxElement,
+        ]);
     }
 }

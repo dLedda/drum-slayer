@@ -1,9 +1,8 @@
 import "./BeatGroupSettings.css";
 import UINode, {UINodeOptions} from "@/ui/UINode";
 import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
-import ISubscriber, {SubscriptionEvent} from "@/Subscriber";
+import ISubscriber from "@/Subscriber";
 import BeatGroup, {BeatGroupEvents} from "@/BeatGroup";
-import {BeatEvents} from "@/Beat";
 import BoolBoxView from "@/ui/Widgets/BoolBox/BoolBoxView";
 import BeatSettingsView from "@/ui/BeatSettings/BeatSettingsView";
 import ActionButtonView from "@/ui/Widgets/ActionButton/ActionButtonView";
@@ -15,13 +14,14 @@ export type BeatGroupSettingsUINodeOptions = UINodeOptions & {
 const EventTypeSubscriptions = [
     BeatGroupEvents.BarCountChanged,
     BeatGroupEvents.TimeSigUpChanged,
-    BeatEvents.DisplayTypeChanged,
+    BeatGroupEvents.GlobalDisplayTypeChanged,
     BeatGroupEvents.BeatListChanged,
     BeatGroupEvents.LockingChanged,
     BeatGroupEvents.AutoBeatSettingsChanged,
 ];
+type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
 
-export default class BeatGroupSettingsView extends UINode implements ISubscriber<typeof EventTypeSubscriptions> {
+export default class BeatGroupSettingsView extends UINode implements ISubscriber<EventTypeSubscriptions> {
     private beatGroup: BeatGroup;
     private barCountInput!: NumberInputView;
     private timeSigUpInput!: NumberInputView;
@@ -45,7 +45,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
         this.beatGroup.addSubscriber(this, EventTypeSubscriptions);
     }
 
-    notify(publisher: unknown, event: SubscriptionEvent<typeof EventTypeSubscriptions>): void {
+    notify(publisher: unknown, event: EventTypeSubscriptions): void {
         switch(event) {
         case BeatGroupEvents.BarCountChanged:
             this.barCountInput.setValue(this.beatGroup.getBarCount());
@@ -66,7 +66,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
         case BeatGroupEvents.AutoBeatSettingsChanged:
             this.autoBeatLengthCheckbox.setValue(this.beatGroup.autoBeatLengthOn());
             break;
-        case BeatEvents.DisplayTypeChanged:
+        case BeatGroupEvents.GlobalDisplayTypeChanged:
             break;
         }
     }
@@ -82,9 +82,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             }
         }
         if (!this.beatSettingsContainer) {
-            this.beatSettingsContainer = UINode.make("div", {
-                subs: this.beatSettingsViews.map(view => view.render())
-            });
+            this.beatSettingsContainer = UINode.make("div", {}, this.beatSettingsViews.map(view => view.render()));
         } else {
             this.beatSettingsContainer.replaceChildren(...this.beatSettingsViews.map(view => view.render()));
         }
@@ -118,18 +116,18 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                 UINode.make("div", {
                     classes: ["beat-group-settings-boxes", "beat-group-settings-option"],
                 }, [
-                    this.timeSigUpInput.render(),
+                    this.timeSigUpInput,
                 ]),
                 UINode.make("div", {
                     classes: ["beat-group-settings-bar-count", "beat-group-settings-option"]
                     ,
                 }, [
-                    this.barCountInput.render(),
+                    this.barCountInput,
                 ]),
                 UINode.make("div", {
                     classes: ["beat-group-settings-bar-count", "beat-group-settings-option"],
                 }, [
-                    this.autoBeatLengthCheckbox.render(),
+                    this.autoBeatLengthCheckbox,
                 ]),
                 new ActionButtonView({
                     label: "New Track",

@@ -33,23 +33,23 @@
     background-color: var(--color-ui-accent-hover);
 }
 
-.beat-unit.beat-unit-on.beat-unit-ghost {
+.beat-unit.beat-unit-on.beat-unit-accent {
     border-color: var(--color-ui-neutral-light);
     background-color: var(--color-ui-accent);
 }
 
-.beat-unit.beat-unit-on.beat-unit-ghost:hover {
+.beat-unit.beat-unit-on.beat-unit-accent:hover {
     border-color: var(--color-ui-neutral-light);
     background-color: var(--color-ui-accent-hover);
 }
 
-.beat-unit.beat-unit-on.beat-unit-accent {
+.beat-unit.beat-unit-on.beat-unit-ghost {
     border-color: var(--color-ui-accent);
     background-color: var(--color-ui-accent);
     opacity: 60%;
 }
 
-.beat-unit.beat-unit-on.beat-unit-accent:hover {
+.beat-unit.beat-unit-on.beat-unit-ghost:hover {
     border-color: var(--color-ui-accent-hover);
     background-color: var(--color-ui-accent-hover);
 }

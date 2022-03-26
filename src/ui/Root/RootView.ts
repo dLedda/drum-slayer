@@ -4,25 +4,43 @@ import BeatGroup from "@/BeatGroup";
 import "./Root.css";
 import BeatGroupSettingsView from "@/ui/BeatGroupSettings/BeatGroupSettingsView";
 import IconView from "@/ui/Widgets/Icon/IconView";
+import StageTitleBarView from "@/ui/StageTitleBar/StageTitleBarView";
 
 export type RootUINodeOptions = UINodeOptions & {
     title: string,
     mainBeatGroup?: BeatGroup,
+    orientation?: "horizontal" | "vertical",
 };
 
 export default class RootView extends UINode {
     private title: string;
     private beatGroupView: BeatGroupView;
-    private mainBeatGroup: BeatGroup;
+    private focusedBeatGroup: BeatGroup;
     private beatGroupSettingsView!: BeatGroupSettingsView;
-
+    private currentOrientation: "horizontal" | "vertical";
+    private stageTitleBarView: StageTitleBarView;
 
     constructor(options: RootUINodeOptions) {
         super(options);
-        this.mainBeatGroup = options.mainBeatGroup ?? RootView.defaultMainBeatGroup();
-        this.beatGroupView = new BeatGroupView({title: options.title, beatGroup: this.mainBeatGroup});
-        this.beatGroupSettingsView = new BeatGroupSettingsView({beatGroup: this.mainBeatGroup});
+        this.currentOrientation = options.orientation ?? "horizontal";
+        this.focusedBeatGroup = options.mainBeatGroup ?? RootView.defaultMainBeatGroup();
+        this.beatGroupView = new BeatGroupView({
+            title: options.title,
+            beatGroup: this.focusedBeatGroup,
+            orientation: this.currentOrientation,
+        });
+        this.stageTitleBarView = new StageTitleBarView({beatGroup: this.focusedBeatGroup});
+        this.beatGroupSettingsView = new BeatGroupSettingsView({beatGroup: this.focusedBeatGroup});
         this.title = options.title;
+        this.setOrientation(this.currentOrientation);
+        this.openSidebarForDesktop();
+    }
+
+    private openSidebarForDesktop() {
+        const mediaQueryList = window.matchMedia("screen and (max-width: 900px)");
+        if (mediaQueryList.matches) {
+            this.toggleSidebar();
+        }
     }
 
     static defaultMainBeatGroup(): BeatGroup {
@@ -39,12 +57,33 @@ export default class RootView extends UINode {
         return mainBeatGroup;
     }
 
+    setMainBeatGroup(beatGroup: BeatGroup): void {
+        this.focusedBeatGroup = beatGroup;
+        this.beatGroupSettingsView.setBeatGroup(this.focusedBeatGroup);
+        this.beatGroupView.setBeatGroup(this.focusedBeatGroup);
+        this.stageTitleBarView.setBeatGroup(this.focusedBeatGroup);
+    }
+
     toggleSidebar(): void {
         this.getNode().classList.toggle("sidebar-visible");
     }
 
     toggleOrientation(): void {
-        this.getNode().classList.toggle("vertical-mode");
+        if (this.currentOrientation === "vertical") {
+            this.setOrientation("horizontal");
+        } else {
+            this.setOrientation("vertical");
+        }
+    }
+
+    setOrientation(orientation: "horizontal" | "vertical"): void {
+        this.currentOrientation = orientation;
+        if (orientation === "vertical") {
+            this.getNode().classList.add("vertical-mode");
+        } else {
+            this.getNode().classList.remove("vertical-mode");
+        }
+        this.beatGroupView.setOrientation(orientation);
     }
 
     private buildSidebarStrip(): HTMLElement {
@@ -71,7 +110,7 @@ export default class RootView extends UINode {
             ]),
             UINode.make("div", {
                 classes: ["root-quick-access-button"],
-                onclick: () => this.mainBeatGroup.bakeLoops(),
+                onclick: () => this.focusedBeatGroup.bakeLoops(),
             }, [
                 new IconView({
                     iconName: "snowflake",
@@ -81,11 +120,7 @@ export default class RootView extends UINode {
             UINode.make("div", {
                 classes: ["root-quick-access-button"],
                 title: "Reset all",
-                onclick: () => {
-                    this.mainBeatGroup = RootView.defaultMainBeatGroup();
-                    this.beatGroupSettingsView.setBeatGroup(this.mainBeatGroup);
-                    this.beatGroupView.setBeatGroup(this.mainBeatGroup);
-                },
+                onclick: () => this.setMainBeatGroup(RootView.defaultMainBeatGroup()),
             }, [
                 new IconView({
                     iconName: "trash",
@@ -99,11 +134,10 @@ export default class RootView extends UINode {
         return (
             UINode.make("div", {classes: ["root-sidebar"]}, [
                 UINode.make("div", {classes: ["root-settings"]}, [
-                    UINode.make("h1", {classes: ["root-title"], innerText: this.title}, [
-                        this.beatGroupSettingsView.render(),
-                    ]),
-                    this.buildSidebarStrip(),
+                    UINode.make("h1", {classes: ["root-title"], innerText: this.title}),
+                    this.beatGroupSettingsView.render(),
                 ]),
+                this.buildSidebarStrip(),
             ])
         );
     }
@@ -113,6 +147,7 @@ export default class RootView extends UINode {
             UINode.make("div", {classes: ["root", "sidebar-visible"]}, [
                 this.buildSidebar(),
                 UINode.make("div", {classes: ["root-beat-stage-container"]}, [
+                    this.stageTitleBarView.render(),
                     UINode.make("div", {classes: ["root-beat-stage"]}, [
                         this.beatGroupView.render(),
                     ])

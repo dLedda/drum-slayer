@@ -88,6 +88,7 @@
 }
 
 .root-beat-stage {
+    position: relative;
     padding: 2em;
     max-height: 100vh;
     margin: auto;
@@ -96,6 +97,8 @@
 }
 
 .vertical-mode .root-beat-stage {
+    margin: 5em auto auto;
+    padding-left: 3em;
     height: 100vh;
 }
 

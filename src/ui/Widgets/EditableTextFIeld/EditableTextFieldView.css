@@ -1,0 +1,14 @@
+input.editable-text-field-view {
+    width: fit-content;
+    max-width: 200px;
+}
+
+div.editable-text-field-view {
+    width: 100%;
+    transition: background-color 200ms;
+    cursor: pointer;
+}
+
+div.editable-text-field-view:hover {
+    background-color: var(--color-ui-neutral-dark-hover);
+}

@@ -6,6 +6,7 @@ const appNode = document.querySelector("#app");
 if (appNode) {
     try {
         const appRoot = new RootView({
+            orientation: "vertical",
             title: "Drum Slayer",
         });
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

@@ -50,16 +50,15 @@ export default class ActionButtonView extends UINode {
     protected build(): HTMLButtonElement {
         this.buttonElement = UINode.make("button", {
             classes: ["action-button", `action-button-${this.type}`],
-            onclick: (event: MouseEvent) => this.disabled || this.onClick(event),
-            subs: [
-                this.icon !== null ? new IconView({
-                    iconName: this.icon,
-                    color: "var(--color-p-light)",
-                }).render() : UINode.make("span", {
-                    innerText: this.label ?? ""
-                }),
-            ],
-        });
+            onclick: (event: MouseEvent) => this.disabled || this.onClick(event)
+        }, [
+            this.icon !== null ? new IconView({
+                iconName: this.icon,
+                color: "var(--color-p-light)",
+            }).render() : UINode.make("span", {
+                innerText: this.label ?? ""
+            }),
+        ]);
         if (this.alt) {
             this.buttonElement.title = this.alt;
         }

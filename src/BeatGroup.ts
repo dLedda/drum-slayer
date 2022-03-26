@@ -1,7 +1,6 @@
 import Beat, {BeatEvents, BeatInitOptions} from "@/Beat";
 import {IPublisher, Publisher} from "@/Publisher";
 import ISubscriber from "@/Subscriber";
-import BeatLike from "@/BeatLike";
 import {greatestCommonDivisor, isPosInt} from "@/utils";
 
 type BeatGroupInitOptions = {
@@ -11,6 +10,7 @@ type BeatGroupInitOptions = {
     beats?: BeatInitOptions[],
     loopLength?: number,
     useAutoBeatLength?: boolean,
+    name?: string,
 };
 
 export const enum BeatGroupEvents {
@@ -20,6 +20,9 @@ export const enum BeatGroupEvents {
     TimeSigUpChanged="bge-3",
     AutoBeatSettingsChanged="bge-4",
     LockingChanged="bge-5",
+    GlobalLoopLengthChanged="bge-5",
+    GlobalDisplayTypeChanged="bge-6",
+    NameChanged="bge-7",
 }
 
 type EventTypeSubscriptions =
@@ -28,19 +31,25 @@ type EventTypeSubscriptions =
     | BeatEvents.WantsRemoval
     | BeatEvents.Baked;
 
-type EventTypePublications = BeatGroupEvents | BeatEvents;
-
-export default class BeatGroup implements IPublisher<EventTypePublications>, BeatLike, ISubscriber<EventTypeSubscriptions> {
+export default class BeatGroup implements IPublisher<BeatGroupEvents>, ISubscriber<EventTypeSubscriptions> {
+    private static globalCounter = 0;
     private beats: Beat[] = [];
-    private publisher: Publisher<EventTypePublications, BeatGroup> = new Publisher<EventTypePublications, BeatGroup>(this);
+    private publisher: Publisher<BeatGroupEvents, BeatGroup> = new Publisher<BeatGroupEvents, BeatGroup>(this);
     private barCount: number;
     private timeSigUp: number;
     private globalLoopLength: number;
     private globalIsLooping: boolean;
     private useAutoBeatLength: boolean;
     private barSettingsLocked = false;
+    private name: string;
 
     constructor(options?: BeatGroupInitOptions) {
+        BeatGroup.globalCounter++;
+        if (options?.name) {
+            this.name = options.name;
+        } else {
+            this.name = `Pattern ${BeatGroup.globalCounter}`;
+        }
         if (options?.beats) {
             for (const beatOptions of options.beats) {
                 this.addBeat(beatOptions);
@@ -68,7 +77,7 @@ export default class BeatGroup implements IPublisher<EventTypePublications>, Bea
         }
     }
 
-    addSubscriber(subscriber: ISubscriber<EventTypePublications>, eventType: SubscriptionEvent<EventTypePublications>): { unbind: () => void } {
+    addSubscriber(subscriber: ISubscriber<BeatGroupEvents>, eventType: BeatGroupEvents | BeatGroupEvents[]): { unbind: () => void } {
         return this.publisher.addSubscriber(subscriber, eventType);
     }
 
@@ -103,7 +112,7 @@ export default class BeatGroup implements IPublisher<EventTypePublications>, Bea
         for (const beat of this.beats) {
             beat.setLoopLength(loopLength);
         }
-        this.publisher.notifySubs(BeatEvents.LoopLengthChanged);
+        this.publisher.notifySubs(BeatGroupEvents.GlobalLoopLengthChanged);
     }
 
     getLoopLength(): number {
@@ -115,7 +124,7 @@ export default class BeatGroup implements IPublisher<EventTypePublications>, Bea
         for (const beat of this.beats) {
             beat.setLooping(isLooping);
         }
-        this.publisher.notifySubs(BeatEvents.DisplayTypeChanged);
+        this.publisher.notifySubs(BeatGroupEvents.GlobalDisplayTypeChanged);
     }
 
     isLooping(): boolean {
@@ -238,6 +247,7 @@ export default class BeatGroup implements IPublisher<EventTypePublications>, Bea
         const beat = this.getBeatByKey(beatKey);
         this.beats.splice(this.beats.indexOf(beat), 1);
         this.autoBeatLength();
+        console.log("removing");
         this.publisher.notifySubs(BeatGroupEvents.BeatListChanged);
     }
 
@@ -283,5 +293,14 @@ export default class BeatGroup implements IPublisher<EventTypePublications>, Bea
 
     bakeLoops(): void {
         this.beats.forEach(beat => beat.bakeLoops());
+    }
+
+    setName(newName: string): void {
+        this.name = newName;
+        this.publisher.notifySubs(BeatGroupEvents.NameChanged);
+    }
+
+    getName(): string {
+        return this.name;
     }
 }

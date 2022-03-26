@@ -2,12 +2,16 @@
 
 }
 
-.beat-settings-title-input {
-    width: 100%;
+.beat-settings-title-container {
+
+}
+
+.beat-settings-title-container input {
+    min-width: 100%;
     height: 2em;
 }
 
-.beat-settings-title {
+.beat-settings-title-container > div {
     width: 100%;
     font-weight: bold;
     padding: 0.5em;
@@ -15,7 +19,7 @@
     cursor: pointer;
 }
 
-.beat-settings-title:hover {
+.beat-settings-title-container > div:hover {
     background-color: var(--color-ui-neutral-dark-hover);
 }
 
