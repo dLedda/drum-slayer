@@ -1,5 +1,6 @@
 import "./BoolBox.css";
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
+import Ref from "@/Ref";
 
 export type BoolBoxUINodeOptions = UINodeOptions & {
     label?: string,
@@ -36,9 +37,9 @@ export default class BoolBoxView extends UINode {
     }
 
     build(): HTMLDivElement {
-        this.labelElement = UINode.make("label", {
+        this.labelElement = h("label", {
             classes: ["bool-box-label"],
-            innerText: this.label ?? "",
+            innerText: this.label,
             onclick: () => {
                 this.onInput(!this.checkboxElement.checked);
             },
@@ -46,14 +47,14 @@ export default class BoolBoxView extends UINode {
         if (this.label !== null) {
             this.labelElement.classList.add("visible");
         }
-        this.checkboxElement = UINode.make("input", {
+        this.checkboxElement = h("input", {
             type: "checkbox",
             classes: ["bool-box-checkbox"],
             onclick: (event: Event) => {
                 this.onInput((event.target as HTMLInputElement).checked);
             },
         });
-        return UINode.make("div", {
+        return h("div", {
             classes: ["bool-box"],
         },[
             this.labelElement,

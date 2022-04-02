@@ -1,10 +1,11 @@
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import BeatGroupView from "@/ui/BeatGroup/BeatGroupView";
 import BeatGroup from "@/BeatGroup";
 import "./Root.css";
 import BeatGroupSettingsView from "@/ui/BeatGroupSettings/BeatGroupSettingsView";
 import IconView from "@/ui/Widgets/Icon/IconView";
 import StageTitleBarView from "@/ui/StageTitleBar/StageTitleBarView";
+import Ref from "@/Ref";
 
 export type RootUINodeOptions = UINodeOptions & {
     title: string,
@@ -16,9 +17,11 @@ export default class RootView extends UINode {
     private title: string;
     private beatGroupView: BeatGroupView;
     private focusedBeatGroup: BeatGroup;
-    private beatGroupSettingsView!: BeatGroupSettingsView;
+    private beatGroupSettingsView: BeatGroupSettingsView;
     private currentOrientation: "horizontal" | "vertical";
     private stageTitleBarView: StageTitleBarView;
+    private showHideSidebarButton: Ref<HTMLDivElement | null> = new Ref<HTMLDivElement | null>(null);
+    private sidebarActive = true;
 
     constructor(options: RootUINodeOptions) {
         super(options);
@@ -65,6 +68,8 @@ export default class RootView extends UINode {
     }
 
     toggleSidebar(): void {
+        this.sidebarActive = !this.sidebarActive;
+        this.showHideSidebarButton.val!.title = this.sidebarText();
         this.getNode().classList.toggle("sidebar-visible");
     }
 
@@ -86,38 +91,47 @@ export default class RootView extends UINode {
         this.beatGroupView.setOrientation(orientation);
     }
 
+    private sidebarText(): string {
+        return `${this.sidebarActive ? "Hide" : "Show"} sidebar`;
+    }
+
+
     private buildSidebarStrip(): HTMLElement {
-        return UINode.make("div", {
+        return h("div", {
             classes: ["root-sidebar-toggle"],
         }, [
-            UINode.make("div", {
+            h("div", {
                 classes: ["root-quick-access-button"],
+                title: this.sidebarText(),
+                saveTo: this.showHideSidebarButton,
                 onclick: () => this.toggleSidebar(),
             }, [
                 new IconView({
                     iconName: "list",
                     color: "var(--color-ui-neutral-dark)"
-                }).render()
+                })
             ]),
-            UINode.make("div", {
+            h("div", {
                 classes: ["root-quick-access-button"],
+                title: "Change orientation",
                 onclick: () => this.toggleOrientation(),
             }, [
                 new IconView({
                     iconName: "arrowClockwise",
                     color: "var(--color-ui-neutral-dark)"
-                }).render(),
+                }),
             ]),
-            UINode.make("div", {
+            h("div", {
                 classes: ["root-quick-access-button"],
+                title: "Bake all tracks",
                 onclick: () => this.focusedBeatGroup.bakeLoops(),
             }, [
                 new IconView({
                     iconName: "snowflake",
                     color: "var(--color-ui-neutral-dark)"
-                }).render(),
+                }),
             ]),
-            UINode.make("div", {
+            h("div", {
                 classes: ["root-quick-access-button"],
                 title: "Reset all",
                 onclick: () => this.setMainBeatGroup(RootView.defaultMainBeatGroup()),
@@ -125,17 +139,17 @@ export default class RootView extends UINode {
                 new IconView({
                     iconName: "trash",
                     color: "var(--color-ui-neutral-dark)"
-                }).render()
+                })
             ]),
         ]);
     }
 
     private buildSidebar(): HTMLElement {
         return (
-            UINode.make("div", {classes: ["root-sidebar"]}, [
-                UINode.make("div", {classes: ["root-settings"]}, [
-                    UINode.make("h1", {classes: ["root-title"], innerText: this.title}),
-                    this.beatGroupSettingsView.render(),
+            h("div", {classes: ["root-sidebar"]}, [
+                h("div", {classes: ["root-settings"]}, [
+                    h("h1", {classes: ["root-title"], innerText: this.title}),
+                    this.beatGroupSettingsView,
                 ]),
                 this.buildSidebarStrip(),
             ])
@@ -144,12 +158,12 @@ export default class RootView extends UINode {
 
     build(): HTMLElement {
         return (
-            UINode.make("div", {classes: ["root", "sidebar-visible"]}, [
+            h("div", {classes: ["root", "sidebar-visible"]}, [
                 this.buildSidebar(),
-                UINode.make("div", {classes: ["root-beat-stage-container"]}, [
-                    this.stageTitleBarView.render(),
-                    UINode.make("div", {classes: ["root-beat-stage"]}, [
-                        this.beatGroupView.render(),
+                h("div", {classes: ["root-beat-stage-container"]}, [
+                    this.stageTitleBarView,
+                    h("div", {classes: ["root-beat-stage"]}, [
+                        this.beatGroupView,
                     ])
                 ])
             ])

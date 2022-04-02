@@ -1,4 +1,4 @@
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import BeatGroup, {BeatGroupEvents} from "@/BeatGroup";
 import BeatView from "@/ui/Beat/BeatView";
 import "./BeatGroup.css";
@@ -42,7 +42,7 @@ export default class BeatGroupView extends UINode implements ISubscriber<EventTy
     private setupBeatViews(): void {
         this.beatViews = [];
         for (let i = 0; i < this.beatGroup.getBeatCount(); i++) {
-            this.beatViews.push(new BeatView({beat: this.beatGroup.getBeatByIndex(i)}));
+            this.beatViews.unshift(new BeatView({beat: this.beatGroup.getBeatByIndex(i)}));
         }
         if (this.currentOrientation === "vertical") {
             this.reverseDisplayOrder();
@@ -66,14 +66,15 @@ export default class BeatGroupView extends UINode implements ISubscriber<EventTy
         this.subscription.unbind();
         this.beatGroup = newBeatGroup;
         this.subscription = this.beatGroup.addSubscriber(this, BeatGroupEvents.BeatListChanged);
+        this.beatViews.forEach((beatView, i) => beatView.setBeat(this.beatGroup.getBeatByIndex(i)));
         this.redraw();
     }
 
     build(): HTMLDivElement {
-        return UINode.make("div", {
+        return h("div", {
             classes: ["beat-group"],
         },[
-            ...this.beatViews.map(bv => bv.render())
+            ...this.beatViews
         ]);
     }
 }

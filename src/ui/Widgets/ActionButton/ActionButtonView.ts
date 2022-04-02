@@ -1,5 +1,5 @@
 import "./ActionButton.css";
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import IconView, {IconName} from "@/ui/Widgets/Icon/IconView";
 
 export type ActionButtonUINodeOptions = UINodeOptions & {
@@ -48,14 +48,14 @@ export default class ActionButtonView extends UINode {
     }
 
     protected build(): HTMLButtonElement {
-        this.buttonElement = UINode.make("button", {
+        this.buttonElement = h("button", {
             classes: ["action-button", `action-button-${this.type}`],
             onclick: (event: MouseEvent) => this.disabled || this.onClick(event)
         }, [
             this.icon !== null ? new IconView({
                 iconName: this.icon,
                 color: "var(--color-p-light)",
-            }).render() : UINode.make("span", {
+            }) : h("span", {
                 innerText: this.label ?? ""
             }),
         ]);

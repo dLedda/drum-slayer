@@ -1,9 +1,10 @@
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import "./Icon.css";
 import List from "./svgs/list.svg";
 import ArrowClockwise from "./svgs/arrow-clockwise.svg";
 import Trash from "./svgs/trash.svg";
 import Snowflake from "./svgs/snowflake.svg";
+import Ref from "@/Ref";
 
 const IconUrlMap = {
     arrowClockwise: ArrowClockwise,
@@ -30,7 +31,7 @@ export default class IconView extends UINode {
     }
 
     build(): HTMLSpanElement {
-        const icon = UINode.make("div", {
+        const icon = h("div", {
             classes: ["icon-view"],
         });
         const colorString = this.color ? `--icon-bg:${this.color}` : "";

@@ -1,5 +1,5 @@
 import "./BeatGroupSettings.css";
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
 import ISubscriber from "@/Subscriber";
 import BeatGroup, {BeatGroupEvents} from "@/BeatGroup";
@@ -82,9 +82,9 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             }
         }
         if (!this.beatSettingsContainer) {
-            this.beatSettingsContainer = UINode.make("div", {}, this.beatSettingsViews.map(view => view.render()));
+            this.beatSettingsContainer = h("div", {}, this.beatSettingsViews);
         } else {
-            this.beatSettingsContainer.replaceChildren(...this.beatSettingsViews.map(view => view.render()));
+            this.beatSettingsContainer.replaceChildren(...this.beatSettingsViews.reverse().map(view => view.render()));
         }
     }
 
@@ -107,24 +107,24 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
             onInput: (isChecked: boolean) => this.beatGroup.setIsUsingAutoBeatLength(isChecked),
         });
         this.remakeBeatSettingsViews();
-        return UINode.make("div", {
+        return h("div", {
             classes: ["beat-group-settings"],
         }, [
-            UINode.make("div", {
+            h("div", {
                 classes: ["beat-group-settings-options"],
             }, [
-                UINode.make("div", {
+                h("div", {
                     classes: ["beat-group-settings-boxes", "beat-group-settings-option"],
                 }, [
                     this.timeSigUpInput,
                 ]),
-                UINode.make("div", {
+                h("div", {
                     classes: ["beat-group-settings-bar-count", "beat-group-settings-option"]
                     ,
                 }, [
                     this.barCountInput,
                 ]),
-                UINode.make("div", {
+                h("div", {
                     classes: ["beat-group-settings-bar-count", "beat-group-settings-option"],
                 }, [
                     this.autoBeatLengthCheckbox,
@@ -132,7 +132,7 @@ export default class BeatGroupSettingsView extends UINode implements ISubscriber
                 new ActionButtonView({
                     label: "New Track",
                     onClick: () => this.beatGroup.addBeat(),
-                }).render(),
+                }),
                 this.beatSettingsContainer,
             ]),
         ]);

@@ -1,5 +1,5 @@
 import "./StageTitleBar.css";
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import {ISubscription} from "@/Publisher";
 import BeatGroup, {BeatGroupEvents} from "@/BeatGroup";
 import ISubscriber from "@/Subscriber";
@@ -42,9 +42,9 @@ export default class StageTitleBarView extends UINode implements ISubscriber<Eve
     }
 
     protected build(): HTMLElement {
-        return UINode.make("div", {classes: ["stage-title-bar"]}, [
-            UINode.make("div", {classes: ["stage-title-bar-preamble"], innerText: "Currently editing:"}),
-            UINode.make("h2", {}, [this.title]),
+        return h("div", {classes: ["stage-title-bar"]}, [
+            h("div", {classes: ["stage-title-bar-preamble"], innerText: "Currently editing:"}),
+            h("h2", {}, [this.title]),
         ]);
     }
 }

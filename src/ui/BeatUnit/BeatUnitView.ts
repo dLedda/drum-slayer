@@ -1,6 +1,6 @@
 import BeatUnit, {BeatUnitEvent, BeatUnitType} from "@/BeatUnit";
 import ISubscriber from "@/Subscriber";
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import {IPublisher, ISubscription, Publisher} from "@/Publisher";
 import "./BeatUnit.css";
 
@@ -113,7 +113,7 @@ export default class BeatUnitView extends UINode implements ISubscriber<EventTyp
         if (this.beatUnit.isOn()) {
             classes.push("beat-unit-on");
         }
-        return UINode.make("div", {
+        return h("div", {
             classes: classes,
             oncontextmenu: () => false,
         });

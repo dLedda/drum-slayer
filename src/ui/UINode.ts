@@ -1,3 +1,5 @@
+import Ref from "@/Ref";
+
 export type UINodeOptions = {
 
 };
@@ -7,7 +9,7 @@ type IRenderAttributes<
     K extends keyof HTMLElementTagNameMap[T]
     > = Partial<Record<K, HTMLElementTagNameMap[T][K]> & {
     classes: string[],
-    subs: HTMLElement[],
+    saveTo: Ref<HTMLElementTagNameMap[T] | null>,
 }>;
 
 export default abstract class UINode {
@@ -45,45 +47,51 @@ export default abstract class UINode {
     }
 
     protected abstract build(): HTMLElement;
+}
 
-    static make<
-            T extends keyof HTMLElementTagNameMap,
-            K extends keyof HTMLElementTagNameMap[T]>(
-        type: T,
-        attributes: IRenderAttributes<T, K>,
-        subNodes?: (Node | UINode)[],
-    ): HTMLElementTagNameMap[T] {
-        const element = document.createElement(type);
-        if (attributes) {
-            for (const key in attributes) {
-                if (key === "classes") {
-                    element.classList.add(...attributes[key]!);
-                } else {
-                    element[key as keyof HTMLElementTagNameMap[T]] = (attributes as any)[key];
-                }
+export function h<
+    T extends keyof HTMLElementTagNameMap,
+    K extends keyof HTMLElementTagNameMap[T]>(
+    type: T,
+    attributes: IRenderAttributes<T, K>,
+    subNodes?: (Node | UINode | Ref<any>)[],
+): HTMLElementTagNameMap[T] {
+    const element = document.createElement(type);
+    if (attributes) {
+        for (const key in attributes) {
+            if (key === "classes") {
+                element.classList.add(...attributes[key]!);
+            } else if (key === "saveTo") {
+                attributes.saveTo!.val = element;
+            } else {
+                element[key as keyof HTMLElementTagNameMap[T]] = (attributes as any)[key];
             }
         }
-        if (subNodes) {
-            for (const subElement of subNodes) {
-                if (subElement instanceof UINode) {
-                    element.append(subElement.render());
-                } else {
-                    element.append(subElement);
-                }
+    }
+    if (subNodes) {
+        for (let i = 0; i < subNodes.length; i++) {
+            const subNode = subNodes[i];
+            if (subNode instanceof UINode) {
+                element.append(subNode.render());
+            } else if (subNode instanceof Ref) {
+                subNode.watch((newVal) => element.childNodes.item(i).replaceWith(newVal.toString()));
+                element.append(q(subNode.val.toString()));
+            } else {
+                element.append(subNode);
             }
         }
-        return element;
     }
+    return element;
+}
 
-    static q(text: string): Text {
-        return document.createTextNode(text);
-    }
+export function q(text: string): Text {
+    return document.createTextNode(text);
+}
 
-    static frag(subs?: Node[]): DocumentFragment {
-        const frag = document.createDocumentFragment();
-        if (subs) {
-            frag.append(...subs);
-        }
-        return frag;
+export function frag(subs?: Node[]): DocumentFragment {
+    const frag = document.createDocumentFragment();
+    if (subs) {
+        frag.append(...subs);
     }
+    return frag;
 }

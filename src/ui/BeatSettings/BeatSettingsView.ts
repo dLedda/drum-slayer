@@ -1,6 +1,6 @@
 import "./BeatSettings.css";
 import Beat, {BeatEvents} from "@/Beat";
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import ISubscriber from "@/Subscriber";
 import {ISubscription} from "@/Publisher";
 import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
@@ -90,25 +90,25 @@ export default class BeatSettingsView extends UINode implements ISubscriber<Even
             value: this.beat.isLooping(),
             onInput: (isChecked: boolean) => this.beat.setLooping(isChecked),
         });
-        this.loopLengthSection = UINode.make("div", {
+        this.loopLengthSection = h("div", {
             classes: ["loop-settings-option"],
         }, [
-            this.loopLengthInput.render(),
+            this.loopLengthInput,
         ]);
         if (this.beat.isLooping()) {
             this.loopLengthSection.classList.remove("hide");
         } else {
             this.loopLengthSection.classList.add("hide");
         }
-        return UINode.make("div", {
+        return h("div", {
             classes: ["beat-settings"],
         }, [
-            UINode.make("div", {
+            h("div", {
                 classes: ["beat-settings-title-container"]
             }, [
                 this.title,
             ]),
-            UINode.make("div", {
+            h("div", {
                 classes: ["beat-settings-lower"],
             }, [
                 this.bakeButton,
@@ -117,8 +117,8 @@ export default class BeatSettingsView extends UINode implements ISubscriber<Even
                     type: "secondary",
                     alt: "Delete Track",
                     onClick: () => this.beat.delete(),
-                }).render(),
-                UINode.make("div", {
+                }),
+                h("div", {
                     classes: ["loop-settings"],
                 }, [
                     this.loopCheckbox,

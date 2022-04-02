@@ -1,8 +1,10 @@
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import Beat, {BeatEvents} from "@/Beat";
 import ISubscriber from "@/Subscriber";
 import BeatUnitView from "@/ui/BeatUnit/BeatUnitView";
 import "./Beat.css";
+import {ISubscription} from "@/Publisher";
+import Ref from "@/Ref";
 
 export type BeatUINodeOptions = UINodeOptions & {
     beat: Beat,
@@ -19,37 +21,31 @@ const EventTypeSubscriptions = [
 type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
 
 export default class BeatView extends UINode implements ISubscriber<EventTypeSubscriptions> {
-    private beat: Beat;
-    private title!: HTMLHeadingElement;
+    private beat!: Beat;
+    private title = new Ref<HTMLHeadingElement | null>(null);
     private beatUnitViews: BeatUnitView[] = [];
     private beatUnitViewBlock: HTMLElement | null = null;
     private lastHoveredBeatUnitView: BeatUnitView | null = null;
+    private sub: ISubscription | null = null;
     static deselectingUnits = false;
     static selectingUnits = false;
 
     constructor(options: BeatUINodeOptions) {
         super(options);
-        this.beat = options.beat;
-        this.setupBindings();
+        this.setBeat(options.beat);
     }
 
-    private onBeatViewHover(beatView: BeatUnitView) {
-        this.lastHoveredBeatUnitView = beatView;
-        if (BeatView.selectingUnits) {
-            this.lastHoveredBeatUnitView.turnOn();
-        } else if (BeatView.deselectingUnits) {
-            this.lastHoveredBeatUnitView.turnOff();
-        }
-    }
-
-    private setupBindings() {
-        this.beat.addSubscriber(this, EventTypeSubscriptions);
+    setBeat(beat: Beat): void {
+        this.beat = beat;
+        this.sub?.unbind();
+        this.sub = this.beat.addSubscriber(this, EventTypeSubscriptions);
+        this.redraw();
     }
 
     notify(publisher: unknown, event: EventTypeSubscriptions): void {
         switch (event) {
         case BeatEvents.NewName:
-            this.title.innerText = this.beat.getName();
+            this.title.val!.innerText = this.beat.getName();
             break;
         case BeatEvents.NewTimeSig:
         case BeatEvents.NewBarCount:
@@ -73,9 +69,9 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
                 } else {
                     view = new BeatUnitView({beatUnit});
                     this.beatUnitViews.push(view);
+                    view.onHover(() => this.onBeatViewHover(view));
+                    view.onMouseDown((event: MouseEvent) => this.onBeatUnitClick(event.button, i));
                 }
-                view.onHover(() => this.onBeatViewHover(view));
-                view.onMouseDown((event: MouseEvent) => this.onBeatUnitClick(event.button, i));
             }
         }
     }
@@ -90,6 +86,15 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
         }
     }
 
+    private onBeatViewHover(beatView: BeatUnitView) {
+        this.lastHoveredBeatUnitView = beatView;
+        if (BeatView.selectingUnits) {
+            this.lastHoveredBeatUnitView.turnOn();
+        } else if (BeatView.deselectingUnits) {
+            this.lastHoveredBeatUnitView.turnOff();
+        }
+    }
+
     private buildBeatUnitViewBlock(): void {
         const beatUnitNodes: HTMLElement[] = [];
         for (let i = 0; i < this.beatUnitViews.length; i++) {
@@ -98,7 +103,7 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
         if (this.beatUnitViewBlock) {
             this.beatUnitViewBlock.replaceChildren(...beatUnitNodes);
         } else {
-            this.beatUnitViewBlock = UINode.make("div", {
+            this.beatUnitViewBlock = h("div", {
                 classes: ["beat-unit-block"],
             }, [
                 ...beatUnitNodes
@@ -118,7 +123,7 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
         let spacersInserted = false;
         while (!spacersInserted) {
             i += barLength;
-            const newSpacer = UINode.make("div", {classes: ["beat-spacer"]});
+            const newSpacer = h("div", {classes: ["beat-spacer"]});
             const leftNeighbour = this.beatUnitViewBlock.children.item(i);
             if (leftNeighbour) {
                 leftNeighbour.insertAdjacentElement("afterend", newSpacer);
@@ -140,21 +145,21 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
     }
 
     build(): HTMLElement {
-        this.title = UINode.make("h3", {
-            innerText: this.beat.getName(),
-            classes: ["beat-title"],
-        });
         this.setupBeatUnits();
         if (!this.beatUnitViewBlock) {
             throw new Error("Beat unit block setup failed!");
         }
-        return UINode.make("div", {
+        return h("div", {
             classes: ["beat"],
         }, [
-            UINode.make("div", {
+            h("div", {
                 classes: ["beat-main"],
             }, [
-                this.title,
+                h("h3", {
+                    innerText: this.beat.getName(),
+                    saveTo: this.title,
+                    classes: ["beat-title"],
+                }),
                 this.beatUnitViewBlock,
             ]),
         ]);

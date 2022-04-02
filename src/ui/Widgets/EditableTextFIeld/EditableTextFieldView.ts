@@ -1,4 +1,4 @@
-import UINode, {UINodeOptions} from "@/ui/UINode";
+import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import "./EditableTextFieldView.css";
 
 export type EditableTextFieldViewOptions = UINodeOptions & {
@@ -31,7 +31,7 @@ export default class EditableTextFieldView extends UINode {
     }
 
     build(): HTMLSpanElement {
-        this.titleInput = UINode.make("input", {
+        this.titleInput = h("input", {
             value: this.text,
             classes: ["editable-text-field-view"],
             type: "text",
@@ -58,7 +58,7 @@ export default class EditableTextFieldView extends UINode {
                 }
             },
         });
-        this.titleDisplay = UINode.make("div", {
+        this.titleDisplay = h("div", {
             innerText: this.text,
             classes: ["editable-text-field-view"],
             onclick: () => {
