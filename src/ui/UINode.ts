@@ -4,13 +4,12 @@ export type UINodeOptions = {
 
 };
 
-type IRenderAttributes<
-    T extends keyof HTMLElementTagNameMap,
-    K extends keyof HTMLElementTagNameMap[T]
-    > = Partial<Record<K, HTMLElementTagNameMap[T][K]> & {
-    classes: string[],
-    saveTo: Ref<HTMLElementTagNameMap[T] | null>,
-}>;
+type IRenderAttributes<T extends keyof HTMLElementTagNameMap> = Partial<{
+    [K in keyof HTMLElementTagNameMap[T]]: HTMLElementTagNameMap[T][K] | Ref<HTMLElementTagNameMap[T][K]>
+}> & {
+    classes?: string[],
+    saveTo?: Ref<HTMLElementTagNameMap[T] | null>,
+};
 
 export default abstract class UINode {
     protected node: HTMLElement | null = null;
@@ -50,10 +49,9 @@ export default abstract class UINode {
 }
 
 export function h<
-    T extends keyof HTMLElementTagNameMap,
-    K extends keyof HTMLElementTagNameMap[T]>(
+    T extends keyof HTMLElementTagNameMap>(
     type: T,
-    attributes: IRenderAttributes<T, K>,
+    attributes: IRenderAttributes<T>,
     subNodes?: (Node | UINode | Ref<any>)[],
 ): HTMLElementTagNameMap[T] {
     const element = document.createElement(type);
@@ -64,7 +62,13 @@ export function h<
             } else if (key === "saveTo") {
                 attributes.saveTo!.val = element;
             } else {
-                element[key as keyof HTMLElementTagNameMap[T]] = (attributes as any)[key];
+                const attribute = (attributes as any)[key];
+                if (attribute instanceof Ref) {
+                    element[key as keyof HTMLElementTagNameMap[T]] = attribute.val;
+                    attribute.watch((newVal) => element[key as keyof HTMLElementTagNameMap[T]] = newVal);
+                } else {
+                    element[key as keyof HTMLElementTagNameMap[T]] = attribute;
+                }
             }
         }
     }
