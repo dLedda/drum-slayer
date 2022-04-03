@@ -1,129 +1,139 @@
 import "./BeatSettings.css";
-import Beat, {BeatEvents} from "@/Beat";
 import UINode, {h, UINodeOptions} from "@/ui/UINode";
-import ISubscriber from "@/Subscriber";
-import {ISubscription} from "@/Publisher";
 import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
+import ISubscriber from "@/Subscriber";
+import Beat, {BeatEvents} from "@/Beat";
 import BoolBoxView from "@/ui/Widgets/BoolBox/BoolBoxView";
+import TrackSettingsView from "@/ui/TrackSettings/TrackSettingsView";
 import ActionButtonView from "@/ui/Widgets/ActionButton/ActionButtonView";
-import EditableTextFieldView from "@/ui/Widgets/EditableTextFIeld/EditableTextFieldView";
 
-export type BeatSettingsViewUINodeOptions = UINodeOptions & {
+export type BeatSettingsUINodeOptions = UINodeOptions & {
     beat: Beat,
 };
 
 const EventTypeSubscriptions = [
-    BeatEvents.NewName,
-    BeatEvents.LoopLengthChanged,
-    BeatEvents.DisplayTypeChanged,
+    BeatEvents.TimeSigUpChanged,
+    BeatEvents.BarCountChanged,
+    BeatEvents.GlobalDisplayTypeChanged,
+    BeatEvents.TrackListChanged,
+    BeatEvents.LockingChanged,
+    BeatEvents.AutoBeatSettingsChanged,
 ];
 type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
 
 export default class BeatSettingsView extends UINode implements ISubscriber<EventTypeSubscriptions> {
     private beat: Beat;
-    private loopLengthInput!: NumberInputView;
-    private bakeButton!: ActionButtonView;
-    private loopCheckbox!: BoolBoxView;
-    private loopLengthSection!: HTMLDivElement;
-    private sub!: ISubscription;
-    private title!: EditableTextFieldView;
-    private editingTitle: boolean;
+    private barCountInput!: NumberInputView;
+    private timeSigUpInput!: NumberInputView;
+    private autoBeatLengthCheckbox!: BoolBoxView;
+    private trackSettingsViews: TrackSettingsView[] = [];
+    private trackSettingsContainer!: HTMLDivElement;
 
-    constructor(options: BeatSettingsViewUINodeOptions) {
+    constructor(options: BeatSettingsUINodeOptions) {
         super(options);
-        this.editingTitle = false;
         this.beat = options.beat;
         this.setupBindings();
     }
 
-    private setupBindings() {
-        this.sub = this.beat.addSubscriber(this, EventTypeSubscriptions);
-    }
-
-    setBeat(beat: Beat): void {
-        this.sub.unbind();
-        this.beat = beat;
+    setBeatGroup(newBeat: Beat): void {
+        this.beat = newBeat;
         this.setupBindings();
         EventTypeSubscriptions.forEach(eventType => this.notify(null, eventType));
     }
 
+    setupBindings(): void {
+        this.beat.addSubscriber(this, EventTypeSubscriptions);
+    }
+
     notify(publisher: unknown, event: EventTypeSubscriptions): void {
         switch(event) {
-        case BeatEvents.NewName:
-            this.title.setText(this.beat.getName());
+        case BeatEvents.BarCountChanged:
+            this.barCountInput.setValue(this.beat.getBarCount());
             break;
-        case BeatEvents.LoopLengthChanged:
-            this.loopLengthInput.setValue(this.beat.getLoopLength());
+        case BeatEvents.TimeSigUpChanged:
+            this.timeSigUpInput.setValue(this.beat.getTimeSigUp());
             break;
-        case BeatEvents.DisplayTypeChanged:
-            this.loopCheckbox.setValue(this.beat.isLooping());
-            this.bakeButton.setDisabled(!this.beat.isLooping());
-            if (this.beat.isLooping()) {
-                this.loopLengthSection.classList.remove("hide");
+        case BeatEvents.TrackListChanged:
+            this.remakeBeatSettingsViews();
+            break;
+        case BeatEvents.LockingChanged:
+            if (this.beat.barsLocked()) {
+                this.barCountInput.disable();
             } else {
-                this.loopLengthSection.classList.add("hide");
+                this.barCountInput.enable();
             }
+            break;
+        case BeatEvents.AutoBeatSettingsChanged:
+            this.autoBeatLengthCheckbox.setValue(this.beat.autoBeatLengthOn());
+            break;
+        case BeatEvents.GlobalDisplayTypeChanged:
             break;
         }
     }
 
-    build(): HTMLElement {
-        this.title = new EditableTextFieldView({
-            initialText: this.beat.getName(),
-            setter: (newText) => this.beat.setName(newText),
-        });
-        this.bakeButton = new ActionButtonView({
-            icon: "snowflake",
-            type: "secondary",
-            alt: "Bake Loops",
-            disabled: !this.beat.isLooping(),
-            onClick: () => this.beat.bakeLoops(),
-        });
-        this.loopLengthInput = new NumberInputView({
-            initialValue: this.beat.getLoopLength(),
-            onDecrement: () => this.beat.setLoopLength(this.beat.getLoopLength() - 1),
-            onIncrement: () => this.beat.setLoopLength(this.beat.getLoopLength() + 1),
-            onNewInput: (input: number) => this.beat.setLoopLength(input),
-        });
-        this.loopCheckbox = new BoolBoxView({
-            label: "Loop:",
-            value: this.beat.isLooping(),
-            onInput: (isChecked: boolean) => this.beat.setLooping(isChecked),
-        });
-        this.loopLengthSection = h("div", {
-            classes: ["loop-settings-option"],
-        }, [
-            this.loopLengthInput,
-        ]);
-        if (this.beat.isLooping()) {
-            this.loopLengthSection.classList.remove("hide");
-        } else {
-            this.loopLengthSection.classList.add("hide");
+    private remakeBeatSettingsViews() {
+        const trackCount = this.beat.getTrackCount();
+        this.trackSettingsViews.splice(trackCount, this.trackSettingsViews.length - trackCount);
+        for (let i = 0; i < trackCount; i++) {
+            if (this.trackSettingsViews[i]) {
+                this.trackSettingsViews[i].setBeat(this.beat.getTrackByIndex(i));
+            } else {
+                this.trackSettingsViews.push(new TrackSettingsView({ track: this.beat.getTrackByIndex(i) }));
+            }
         }
+        if (!this.trackSettingsContainer) {
+            this.trackSettingsContainer = h("div", {}, this.trackSettingsViews);
+        } else {
+            this.trackSettingsContainer.replaceChildren(...this.trackSettingsViews.reverse().map(view => view.render()));
+        }
+    }
+
+    build(): HTMLElement {
+        this.barCountInput = new NumberInputView({
+            label: "Bars:",
+            initialValue: this.beat.getBarCount(),
+            setter: (input: number) => this.beat.setBarCount(input),
+            getter: () => this.beat.getBarCount(),
+        });
+        this.timeSigUpInput = new NumberInputView({
+            label: "Boxes per bar:",
+            initialValue: this.beat.getTimeSigUp(),
+            setter: (input: number) => this.beat.setTimeSigUp(input),
+            getter: () => this.beat.getTimeSigUp(),
+        });
+        this.autoBeatLengthCheckbox = new BoolBoxView({
+            label: "Auto beat length:",
+            value: this.beat.autoBeatLengthOn(),
+            onInput: (isChecked: boolean) => this.beat.setIsUsingAutoBeatLength(isChecked),
+        });
+        this.remakeBeatSettingsViews();
         return h("div", {
             classes: ["beat-settings"],
         }, [
             h("div", {
-                classes: ["beat-settings-title-container"]
+                classes: ["beat-settings-options"],
             }, [
-                this.title,
-            ]),
-            h("div", {
-                classes: ["beat-settings-lower"],
-            }, [
-                this.bakeButton,
-                new ActionButtonView({
-                    icon: "trash",
-                    type: "secondary",
-                    alt: "Delete Track",
-                    onClick: () => this.beat.delete(),
-                }),
                 h("div", {
-                    classes: ["loop-settings"],
+                    classes: ["beat-settings-boxes", "beat-settings-option"],
                 }, [
-                    this.loopCheckbox,
+                    this.timeSigUpInput,
                 ]),
-                this.loopLengthSection,
+                h("div", {
+                    classes: ["beat-settings-bar-count", "beat-settings-option"]
+                    ,
+                }, [
+                    this.barCountInput,
+                ]),
+                h("div", {
+                    classes: ["beat-settings-bar-count", "beat-settings-option"],
+                }, [
+                    this.autoBeatLengthCheckbox,
+                ]),
+                new ActionButtonView({
+                    label: "New Track",
+                    onClick: () => this.beat.addTrack(),
+                }),
+                this.trackSettingsContainer,
             ]),
         ]);
     }

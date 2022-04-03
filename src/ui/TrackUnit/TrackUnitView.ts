@@ -1,40 +1,40 @@
-import BeatUnit, {BeatUnitEvent, BeatUnitType} from "@/BeatUnit";
+import TrackUnit, {TrackUnitEvent, TrackUnitType} from "@/TrackUnit";
 import ISubscriber from "@/Subscriber";
 import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import {IPublisher, ISubscription, Publisher} from "@/Publisher";
-import "./BeatUnit.css";
+import "./TrackUnit.css";
 
-export type BeatUnitUINodeOptions = UINodeOptions & {
-    beatUnit: BeatUnit,
+export type TrackUnitUINodeOptions = UINodeOptions & {
+    trackUnit: TrackUnit,
 };
 
 const EventTypeSubscriptions = [
-    BeatUnitEvent.On,
-    BeatUnitEvent.Off,
-    BeatUnitEvent.TypeChange,
+    TrackUnitEvent.On,
+    TrackUnitEvent.Off,
+    TrackUnitEvent.TypeChange,
 ];
 type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
 
-export default class BeatUnitView extends UINode implements ISubscriber<EventTypeSubscriptions> {
-    private beatUnit: BeatUnit;
+export default class TrackUnitView extends UINode implements ISubscriber<EventTypeSubscriptions> {
+    private trackUnit: TrackUnit;
     private subscription: ISubscription | null = null;
-    private publisher: IPublisher<BeatUnitEvent> = new Publisher<BeatUnitEvent, BeatUnitView>(this);
+    private publisher: IPublisher<TrackUnitEvent> = new Publisher<TrackUnitEvent, TrackUnitView>(this);
     private touchTimeout: ReturnType<typeof setTimeout> | null = null;
     private mouseDownListeners: ((ev: MouseEvent) => void)[] = [];
     private hoverListeners: ((ev: MouseEvent) => void)[] = [];
 
-    constructor(options: BeatUnitUINodeOptions) {
+    constructor(options: TrackUnitUINodeOptions) {
         super(options);
-        this.beatUnit = options.beatUnit;
+        this.trackUnit = options.trackUnit;
         this.setupBindings();
     }
 
-    setUnit(beatUnit: BeatUnit | null): void {
-        if (beatUnit) {
-            this.beatUnit = beatUnit;
+    setUnit(trackUnit: TrackUnit | null): void {
+        if (trackUnit) {
+            this.trackUnit = trackUnit;
             this.setupBindings();
-            this.notify(this.publisher, beatUnit.isOn() ? BeatUnitEvent.On : BeatUnitEvent.Off);
-            this.notify(this.publisher, BeatUnitEvent.TypeChange);
+            this.notify(this.publisher, trackUnit.isOn() ? TrackUnitEvent.On : TrackUnitEvent.Off);
+            this.notify(this.publisher, TrackUnitEvent.TypeChange);
         } else {
             this.subscription?.unbind();
         }
@@ -42,7 +42,7 @@ export default class BeatUnitView extends UINode implements ISubscriber<EventTyp
 
     private setupBindings() {
         this.subscription?.unbind();
-        this.subscription = this.beatUnit.addSubscriber(this, EventTypeSubscriptions);
+        this.subscription = this.trackUnit.addSubscriber(this, EventTypeSubscriptions);
         this.mouseDownListeners.forEach(listener => this.getNode().removeEventListener("mousedown", listener));
         this.hoverListeners.forEach(listener => this.getNode().removeEventListener("mouseover", listener));
         this.redraw();
@@ -55,13 +55,13 @@ export default class BeatUnitView extends UINode implements ISubscriber<EventTyp
 
     private handleMouseDown(ev: MouseEvent): void {
         if (ev.button === 1) {
-            this.beatUnit.rotateType();
+            this.trackUnit.rotateType();
         }
     }
 
     private handleTouchStart(ev: TouchEvent): void {
         this.touchTimeout = this.touchTimeout || setTimeout(() => {
-            this.beatUnit.rotateType();
+            this.trackUnit.rotateType();
             this.touchTimeout = null;
         }, 400);
     }
@@ -74,38 +74,38 @@ export default class BeatUnitView extends UINode implements ISubscriber<EventTyp
     }
 
     toggle(): void {
-        this.beatUnit.toggle();
+        this.trackUnit.toggle();
     }
 
     turnOn(): void {
-        this.beatUnit.setOn(true);
+        this.trackUnit.setOn(true);
     }
 
     turnOff(): void {
-        this.beatUnit.setOn(false);
+        this.trackUnit.setOn(false);
     }
 
     notify(publisher: unknown, event: EventTypeSubscriptions): void {
         switch (event) {
-        case BeatUnitEvent.On:
-            this.getNode().classList.add("beat-unit-on");
+        case TrackUnitEvent.On:
+            this.getNode().classList.add("track-unit-on");
             break;
-        case BeatUnitEvent.Off:
-            this.getNode().classList.remove("beat-unit-on");
+        case TrackUnitEvent.Off:
+            this.getNode().classList.remove("track-unit-on");
             break;
-        case BeatUnitEvent.TypeChange:
-            switch (this.beatUnit.getType()) {
-            case BeatUnitType.Normal:
-                this.getNode().classList.remove("beat-unit-ghost");
-                this.getNode().classList.remove("beat-unit-accent");
+        case TrackUnitEvent.TypeChange:
+            switch (this.trackUnit.getType()) {
+            case TrackUnitType.Normal:
+                this.getNode().classList.remove("track-unit-ghost");
+                this.getNode().classList.remove("track-unit-accent");
                 break;
-            case BeatUnitType.GhostNote:
-                this.getNode().classList.remove("beat-unit-accent");
-                this.getNode().classList.add("beat-unit-ghost");
+            case TrackUnitType.GhostNote:
+                this.getNode().classList.remove("track-unit-accent");
+                this.getNode().classList.add("track-unit-ghost");
                 break;
-            case BeatUnitType.Accent:
-                this.getNode().classList.remove("beat-unit-ghost");
-                this.getNode().classList.add("beat-unit-accent");
+            case TrackUnitType.Accent:
+                this.getNode().classList.remove("track-unit-ghost");
+                this.getNode().classList.add("track-unit-accent");
                 break;
             }
             break;
@@ -113,9 +113,9 @@ export default class BeatUnitView extends UINode implements ISubscriber<EventTyp
     }
 
     build(): HTMLElement {
-        const classes = ["beat-unit"];
-        if (this.beatUnit.isOn()) {
-            classes.push("beat-unit-on");
+        const classes = ["track-unit"];
+        if (this.trackUnit.isOn()) {
+            classes.push("track-unit-on");
         }
         return h("div", {
             classes: classes,

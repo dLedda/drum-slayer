@@ -1,65 +1,15 @@
-.beat > * {
-    padding-right: 1em;
-    padding-left: 1em;
-}
-
-.vertical-mode .beat > * {
-    padding-right: 0;
-    padding-left: 0;
-}
-
-.beat-unit-block {
-    height: 2em;
-}
-
-.vertical-mode .beat-unit-block {
-    height: auto;
-    width: 2em;
-}
-
-.beat-title {
-    width: 3em;
-    line-height: 32px;
-    margin: 0;
-}
-
-.vertical-mode .beat-title {
-    display: block;
-    width: auto;
-    text-align: center;
-}
-
-.beat-spacer {
-    display: inline-block;
-    width: 1em;
-    height: 2em;
-}
-
-.vertical-mode .beat-spacer {
-    display: block;
-    width: 2em;
-    height: 1em;
-}
-
-.beat-main {
-    display: inline-flex;
-}
-
-.vertical-mode .beat-main {
-    width: 2em;
-    margin-right: 4px;
-    display: block;
-}
-
-.beat-settings-container {
-    display: flex;
-}
-
 .beat {
-    width: max-content;
-    margin-bottom: 4px;
+    padding: 1em;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    display: flex;
+    width: inherit;
+    flex-direction: column;
 }
 
 .vertical-mode .beat {
-    display: inline-block;
+    height: inherit;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    display: block;
 }

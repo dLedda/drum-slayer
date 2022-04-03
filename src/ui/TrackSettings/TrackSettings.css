@@ -1,0 +1,54 @@
+.track-settings {
+
+}
+
+.track-settings-title-container {
+
+}
+
+.track-settings-title-container input {
+    min-width: 100%;
+    height: 2em;
+}
+
+.track-settings-title-container > div {
+    width: 100%;
+    font-weight: bold;
+    padding: 0.5em;
+    transition: background-color 200ms;
+    cursor: pointer;
+}
+
+.track-settings-title-container > div:hover {
+    background-color: var(--color-ui-neutral-dark-hover);
+}
+
+.track-settings-lower {
+    height: 3.5em;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5em;
+}
+.track-settings-lower > * {
+    margin-right: 0.2em;
+}
+
+.track-settings-lower:last-child {
+    margin-right: 0;
+}
+
+.track-settings .loop-settings {
+    text-align: left;
+    flex: auto;
+}
+
+.track-settings .loop-settings-option.hide {
+    display: none;
+}
+
+.track-settings .loop-settings-option {
+    flex: auto;
+    padding-right: 1em;
+}

@@ -27,8 +27,8 @@ type NumberInputUINodeOptionsGetSet = NumberInputUINodeOptionsBase & {
 export type NumberInputUINodeOptions = NumberInputUINodeOptionsGetSet | NumberInputUINodeOptionsIncDecInput;
 
 export default class NumberInputView extends UINode {
-    private labelElement: Ref<HTMLLabelElement | null> = new Ref<HTMLLabelElement | null>(null);
-    private inputElement: Ref<HTMLInputElement | null> = new Ref<HTMLInputElement | null>(null);
+    private labelElement: Ref<HTMLLabelElement | null> = Ref.new<HTMLLabelElement | null>(null);
+    private inputElement: Ref<HTMLInputElement | null> = Ref.new<HTMLInputElement | null>(null);
     private labelPosition: "top" | "left";
     private value: number;
     private label: string | null;

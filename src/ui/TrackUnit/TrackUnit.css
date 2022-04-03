@@ -1,4 +1,4 @@
-.beat-unit {
+.track-unit {
     width: 2em;
     height: 2em;
     margin-right: 4px;
@@ -11,45 +11,45 @@
     cursor: pointer;
 }
 
-.beat-unit:hover {
+.track-unit:hover {
     border-color: #5f5f5f;
     background-color: #5f5f5f;
     transition: none;
 }
 
-.vertical-mode .beat-unit {
+.vertical-mode .track-unit {
     margin-bottom: 4px;
     display: block;
 }
 
-.beat-unit.beat-unit-on {
+.track-unit.track-unit-on {
     border-color: var(--color-ui-accent);
     background-color: var(--color-ui-accent);
     transition: none;
 }
 
-.beat-unit.beat-unit-on:hover {
+.track-unit.track-unit-on:hover {
     border-color: var(--color-ui-accent-hover);
     background-color: var(--color-ui-accent-hover);
 }
 
-.beat-unit.beat-unit-on.beat-unit-accent {
+.track-unit.track-unit-on.track-unit-accent {
     border-color: var(--color-ui-neutral-light);
     background-color: var(--color-ui-accent);
 }
 
-.beat-unit.beat-unit-on.beat-unit-accent:hover {
+.track-unit.track-unit-on.track-unit-accent:hover {
     border-color: var(--color-ui-neutral-light);
     background-color: var(--color-ui-accent-hover);
 }
 
-.beat-unit.beat-unit-on.beat-unit-ghost {
+.track-unit.track-unit-on.track-unit-ghost {
     border-color: var(--color-ui-accent);
     background-color: var(--color-ui-accent);
     opacity: 60%;
 }
 
-.beat-unit.beat-unit-on.beat-unit-ghost:hover {
+.track-unit.track-unit-on.track-unit-ghost:hover {
     border-color: var(--color-ui-accent-hover);
     background-color: var(--color-ui-accent-hover);
 }

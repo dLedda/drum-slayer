@@ -49,51 +49,33 @@ export default abstract class UINode {
     protected abstract build(): HTMLElement;
 }
 
-export function h<
-    T extends keyof HTMLElementTagNameMap>(
-    type: T,
-    attributes: IRenderAttributes<T>,
-    subNodes?: (Node | UINode | Ref)[],
-): HTMLElementTagNameMap[T] {
-    const element = document.createElement(type);
-    if (attributes) {
-        for (const key in attributes) {
-            if (!Object.prototype.hasOwnProperty.call(attributes, key)) {
-                continue;
-            }
-            if (key === "classes" && attributes.classes) {
-                element.classList.add(...attributes.classes);
-            } else if (key === "saveTo" && attributes.saveTo) {
-                attributes.saveTo.val = element;
-            } else if (Object.prototype.hasOwnProperty.call(attributes, key)) {
-                const attribute = (attributes as any)[key];
-                if (attribute) {
-                    if (attribute instanceof Ref) {
-                        (element as any)[key] = attribute.val;
-                        attribute.watch((newVal) => (element as any)[key] = newVal);
-                    } else {
-                        (element as any)[key] = attribute;
-                    }
-                }
-            }
-        }
-    }
-    if (subNodes) {
-        attachSubs(element, subNodes);
-    }
-    return element;
-}
-
-export function q(text: string): Text {
-    return document.createTextNode(text);
-}
-
 export function frag(subs?: Node[]): DocumentFragment {
     const frag = document.createDocumentFragment();
     if (subs) {
         attachSubs(frag, subs);
     }
     return frag;
+}
+
+export function q(text: string): Text {
+    return document.createTextNode(text);
+}
+
+export function h<T extends keyof HTMLElementTagNameMap>(type: T, attributes?: IRenderAttributes<T>, subNodes?: (Node | UINode | Ref)[]): HTMLElementTagNameMap[T] {
+    const element = document.createElement(type);
+    if (attributes) {
+        if (attributes.classes) {
+            element.classList.add(...attributes.classes);
+        }
+        if (attributes.saveTo) {
+            attributes.saveTo.val = element;
+        }
+        applyAttributes(element, attributes);
+    }
+    if (subNodes) {
+        attachSubs(element, subNodes);
+    }
+    return element;
 }
 
 function nodeRefWatcher<T>(newVal: T extends Ref<infer U> ? U : never, textNode: Text, sub: ISubscription): void {
@@ -116,6 +98,24 @@ function attachSubs(node: Element | DocumentFragment, subNodes: (Node | UINode |
             node.append(textNode);
         } else {
             node.append(subNode);
+        }
+    }
+}
+
+function applyAttributes<T extends keyof HTMLElementTagNameMap>(element: HTMLElement, attributes: IRenderAttributes<T>): void {
+    for (const key in attributes) {
+        if (Object.prototype.hasOwnProperty.call(attributes, key)) {
+            const attribute = (attributes as Record<string, unknown>)[key];
+            if (attribute) {
+                if (attribute instanceof Ref) {
+                    const attributeAsRef = attribute as Ref;
+                    const elementWithAttributeKey = element as unknown as Record<string, typeof attributeAsRef.val>;
+                    elementWithAttributeKey[key] = attributeAsRef.val;
+                    attribute.watch((newVal) => elementWithAttributeKey[key] = newVal);
+                } else {
+                    (element as unknown as ({ [key: string]: typeof attribute }))[key] = attribute;
+                }
+            }
         }
     }
 }

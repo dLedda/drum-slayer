@@ -1,5 +1,7 @@
 import {ISubscription} from "@/Publisher";
 
+export type MaybeRef<T> = T | Ref<T>;
+
 class RefSubscription implements ISubscription {
     private unbindCallback?: () => void;
 
@@ -16,15 +18,25 @@ interface Stringable {
     toString(): string;
 }
 
-export default class Ref<T extends { toString(): string } | string | null = Stringable> {
+type AllowedRef = { toString(): string } | string | null;
+
+export default class Ref<T extends AllowedRef = Stringable> {
     private watchers: Array<(newVal: T) => void> | null = null;
     private value: T;
     private asString?: string;
     private isString: boolean;
 
-    constructor(val: T) {
+    private constructor(val: T) {
         this.value = val;
         this.isString = typeof val === "string";
+    }
+
+    static new<T extends AllowedRef>(val: MaybeRef<T>): Ref<T> {
+        if (val instanceof Ref) {
+            return val;
+        } else {
+            return new Ref<T>(val);
+        }
     }
 
     watch(watcher: (newVal: T) => void): ISubscription {

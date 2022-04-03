@@ -1,169 +1,305 @@
-import BeatUnit from "@/BeatUnit";
+import Track, {TrackEvents, TrackInitOptions} from "@/Track";
 import {IPublisher, Publisher} from "@/Publisher";
 import ISubscriber from "@/Subscriber";
-import BeatLike from "@/BeatLike";
-import {isPosInt} from "@/utils";
+import {greatestCommonDivisor, isPosInt} from "@/utils";
 
-export type BeatInitOptions = {
-    timeSig?: {
-        up: number,
-        down: number,
-    },
-    name?: string,
-    bars?: number,
-    isLooping?: boolean,
+type BeatGroupInitOptions = {
+    barCount: number;
+    isLooping: boolean;
+    timeSigUp: number;
+    tracks?: TrackInitOptions[],
     loopLength?: number,
+    useAutoBeatLength?: boolean,
+    name?: string,
 };
 
 export const enum BeatEvents {
-    NewTimeSig="be-0",
-    NewBarCount="be-1",
-    NewName="be-2",
-    DisplayTypeChanged="be-3",
-    LoopLengthChanged="be-4",
-    WantsRemoval="be-5",
-    Baked="be-6",
+    TrackOrderChanged="be-0",
+    TrackListChanged="be-1",
+    BarCountChanged="be-2",
+    TimeSigUpChanged="be-3",
+    AutoBeatSettingsChanged="be-4",
+    LockingChanged="be-5",
+    GlobalLoopLengthChanged="be-5",
+    GlobalDisplayTypeChanged="be-6",
+    NameChanged="be-7",
 }
 
-export default class Beat implements IPublisher<BeatEvents>, BeatLike {
-    private static count = 0;
-    private readonly key: string;
+type EventTypeSubscriptions =
+    | TrackEvents.LoopLengthChanged
+    | TrackEvents.DisplayTypeChanged
+    | TrackEvents.WantsRemoval
+    | TrackEvents.Baked;
+
+export default class Beat implements IPublisher<BeatEvents>, ISubscriber<EventTypeSubscriptions> {
+    private static globalCounter = 0;
+    private tracks: Track[] = [];
+    private publisher: Publisher<BeatEvents, Beat> = new Publisher<BeatEvents, Beat>(this);
+    private barCount: number;
+    private timeSigUp: number;
+    private globalLoopLength: number;
+    private globalIsLooping: boolean;
+    private useAutoBeatLength: boolean;
+    private barSettingsLocked = false;
     private name: string;
-    private timeSigUp = 4;
-    private timeSigDown = 4;
-    private readonly unitRecord: BeatUnit[] = [];
-    private barCount = 1;
-    private publisher = new Publisher<BeatEvents, Beat>(this);
-    private loopLength: number;
-    private looping: boolean;
 
-    constructor(options?: BeatInitOptions) {
-        this.key = `B-${Beat.count}`;
-        this.name = options?.name ?? this.key;
-        this.setTimeSignature({up: options?.timeSig?.up ?? 4, down: options?.timeSig?.down ?? 4});
-        this.setBarCount(options?.bars ?? 4);
-        Beat.count++;
-        this.loopLength = options?.loopLength ?? this.timeSigUp * this.barCount;
-        this.looping = options?.isLooping ?? false;
-    }
-
-    setLoopLength(loopLength: number): void {
-        if (!isPosInt(loopLength) || loopLength < 2) {
-            loopLength = this.loopLength;
+    constructor(options?: BeatGroupInitOptions) {
+        Beat.globalCounter++;
+        if (options?.name) {
+            this.name = options.name;
+        } else {
+            this.name = `Pattern ${Beat.globalCounter}`;
         }
-        this.loopLength = loopLength;
-        this.publisher.notifySubs(BeatEvents.LoopLengthChanged);
+        if (options?.tracks) {
+            for (const trackOptions of options.tracks) {
+                this.addTrack(trackOptions);
+            }
+        }
+        this.barCount = options?.barCount ?? 4;
+        this.timeSigUp = options?.timeSigUp ?? 4;
+        this.globalLoopLength = options?.loopLength ?? this.timeSigUp;
+        this.globalIsLooping = options?.isLooping ?? false;
+        this.useAutoBeatLength = options?.useAutoBeatLength ?? false;
     }
 
-    setLooping(isLooping: boolean): void {
-        this.looping = isLooping;
-        this.publisher.notifySubs(BeatEvents.DisplayTypeChanged);
+    notify(publisher: unknown, event: EventTypeSubscriptions): void {
+        switch (event) {
+        case TrackEvents.LoopLengthChanged:
+        case TrackEvents.DisplayTypeChanged:
+            this.autoBeatLength();
+            break;
+        case TrackEvents.WantsRemoval:
+            this.removeTrack((publisher as Track).getKey());
+            break;
+        case TrackEvents.Baked:
+            this.setIsUsingAutoBeatLength(false);
+            break;
+        }
     }
 
     addSubscriber(subscriber: ISubscriber<BeatEvents>, eventType: BeatEvents | BeatEvents[]): { unbind: () => void } {
         return this.publisher.addSubscriber(subscriber, eventType);
     }
 
-    setTimeSignature(timeSig: {up?: number, down?: number}): void {
-        if (timeSig.up && Beat.isValidTimeSigRange(timeSig.up)) {
-            this.timeSigUp = timeSig.up | 0;
-        }
-        if (timeSig.down && Beat.isValidTimeSigRange(timeSig.down)) {
-            this.timeSigDown = timeSig.down | 0;
-        }
-        this.updateBeatUnitLength();
-        this.publisher.notifySubs(BeatEvents.NewTimeSig);
-    }
-
-    setTimeSigUp(timeSigUp: number): void {
-        this.setTimeSignature({up: timeSigUp});
-    }
-
-    setTimeSigDown(timeSigUp: number): void {
-        this.setTimeSignature({down: timeSigUp});
-    }
-
-    setBarCount(barCount: number): void {
-        if (!isPosInt(barCount) || barCount == this.barCount) {
+    private setBarCountInternal(barCount: number): void {
+        if (!isPosInt(barCount)) {
             barCount = this.barCount;
         }
         this.barCount = barCount;
-        this.updateBeatUnitLength();
-        this.publisher.notifySubs(BeatEvents.NewBarCount);
-    }
-
-    getUnitByIndex(index: number): BeatUnit | null {
-        if (this.looping) {
-            index %= this.loopLength;
+        for (const track of this.tracks) {
+            track.setBarCount(barCount);
         }
-        return this.unitRecord[index] ?? null;
+        this.publisher.notifySubs(BeatEvents.BarCountChanged);
     }
 
-    private updateBeatUnitLength() {
-        const newBarCount = this.barCount * this.timeSigUp;
-        if (newBarCount < this.unitRecord.length) {
-            this.unitRecord.splice(this.barCount * this.timeSigUp, this.unitRecord.length - newBarCount);
-        } else if (newBarCount > this.unitRecord.length) {
-            const barsToAdd = newBarCount - this.unitRecord.length;
-            for (let i = 0; i < barsToAdd; i++) {
-                this.unitRecord.push(new BeatUnit());
-            }
+    setBarCount(barCount: number): void {
+        if (!this.barSettingsLocked) {
+            this.setBarCountInternal(barCount);
+        } else {
+            this.setBarCountInternal(this.barCount);
         }
-    }
-
-    getTimeSigUp(): number {
-        return this.timeSigUp;
-    }
-
-    getTimeSigDown(): number {
-        return this.timeSigDown;
     }
 
     getBarCount(): number {
         return this.barCount;
     }
 
-    getKey(): string {
-        return this.key;
+    setLoopLength(loopLength: number): void {
+        if (!isPosInt(loopLength)) {
+            return;
+        }
+        this.globalLoopLength = loopLength;
+        for (const track of this.tracks) {
+            track.setLoopLength(loopLength);
+        }
+        this.publisher.notifySubs(BeatEvents.GlobalLoopLengthChanged);
     }
 
-    static isValidTimeSigRange(sig: number): boolean {
-        return sig >= 2 && sig <= 32;
+    getLoopLength(): number {
+        return this.globalLoopLength;
+    }
+
+    setLooping(isLooping: boolean): void {
+        this.globalIsLooping = isLooping;
+        for (const track of this.tracks) {
+            track.setLooping(isLooping);
+        }
+        this.publisher.notifySubs(BeatEvents.GlobalDisplayTypeChanged);
+    }
+
+    isLooping(): boolean {
+        return this.globalIsLooping;
+    }
+
+    private findSmallestLoopLength(): number {
+        const loopLengths = [this.timeSigUp];
+        for (const track of this.tracks) {
+            if (track.isLooping()) {
+                const loopLength = track.getLoopLength();
+                if (loopLengths.indexOf(loopLength) === -1) {
+                    loopLengths.push(loopLength);
+                }
+            }
+        }
+        if (loopLengths.length === 1) {
+            loopLengths.push(1);
+        }
+        return loopLengths.reduce((prev, curr) => (prev * curr) / greatestCommonDivisor(prev, curr));
+    }
+
+    setTimeSigUp(timeSigUp: number): void {
+        if (!Track.isValidTimeSigRange(timeSigUp)) {
+            timeSigUp = this.timeSigUp;
+        }
+        this.timeSigUp = timeSigUp;
+        for (const track of this.tracks) {
+            track.setTimeSignature({up: timeSigUp});
+        }
+        this.autoBeatLength();
+        this.publisher.notifySubs(BeatEvents.TimeSigUpChanged);
+    }
+
+    getTimeSigUp(): number {
+        return this.timeSigUp;
+    }
+
+    getTrackByKey(trackKey: string): Track {
+        const foundTrack = this.tracks.find(track => track.getKey() === trackKey);
+        if (typeof foundTrack === "undefined") {
+            throw new Error(`Could not find the track with key: ${trackKey}`);
+        }
+        return foundTrack;
+    }
+
+    getTrackByIndex(trackIndex: number): Track {
+        if (!this.tracks[trackIndex]) {
+            throw new Error(`Could not find the track with index: ${trackIndex}`);
+        }
+        return this.tracks[trackIndex];
+    }
+
+    getTrackCount(): number {
+        return this.tracks.length;
+    }
+
+    getTrackKeys(): string[] {
+        return this.tracks.map(track => track.getKey());
+    }
+
+    swapTracksByIndices(trackIndex1: number, trackIndex2: number): void {
+        const track1 = this.getTrackByIndex(trackIndex1);
+        const track2 = this.getTrackByIndex(trackIndex2);
+        this.tracks[trackIndex1] = track2;
+        this.tracks[trackIndex2] = track1;
+        this.publisher.notifySubs(BeatEvents.TrackOrderChanged);
+    }
+
+    moveTrackBack(trackKey: string): void {
+        const index = this.tracks.indexOf(this.getTrackByKey(trackKey));
+        if (typeof index !== "undefined" && index > 0) {
+            this.swapTracksByIndices(index, index - 1);
+        }
+        this.publisher.notifySubs(BeatEvents.TrackOrderChanged);
+        this.publisher.notifySubs(BeatEvents.TrackListChanged);
+    }
+
+    moveTrackForward(trackKey: string): void {
+        const index = this.tracks.indexOf(this.getTrackByKey(trackKey));
+        if (typeof index !== "undefined" && index < this.getTrackCount()) {
+            this.swapTracksByIndices(index, index + 1);
+        }
+        this.publisher.notifySubs(BeatEvents.TrackOrderChanged);
+        this.publisher.notifySubs(BeatEvents.TrackListChanged);
+    }
+
+    canMoveTrackBack(trackKey: string): boolean {
+        return this.tracks.indexOf(this.getTrackByKey(trackKey)) > 0;
+    }
+
+    canMoveTrackForward(trackKey: string): boolean {
+        return this.tracks.indexOf(this.getTrackByKey(trackKey)) < this.tracks.length - 1;
+    }
+
+    addTrack(options?: TrackInitOptions): Track {
+        options = {
+            timeSig: {
+                up: this.timeSigUp,
+                down: 4,
+            },
+            bars: this.barCount,
+            isLooping: this.globalIsLooping,
+            loopLength: this.globalLoopLength,
+            ...options
+        };
+        const newTrack = new Track(options);
+        this.tracks.push(newTrack);
+        newTrack.addSubscriber(this, [
+            TrackEvents.LoopLengthChanged,
+            TrackEvents.WantsRemoval,
+            TrackEvents.DisplayTypeChanged,
+            TrackEvents.Baked,
+        ]);
+        this.publisher.notifySubs(BeatEvents.TrackListChanged);
+        return newTrack;
+    }
+
+    removeTrack(trackKey: string): void {
+        const track = this.getTrackByKey(trackKey);
+        this.tracks.splice(this.tracks.indexOf(track), 1);
+        this.autoBeatLength();
+        this.publisher.notifySubs(BeatEvents.TrackListChanged);
+    }
+
+    setTrackName(trackKey: string, newName: string): void {
+        this.getTrackByKey(trackKey).setName(newName);
+        this.publisher.notifySubs(BeatEvents.TrackOrderChanged);
+    }
+
+    autoBeatLengthOn(): boolean {
+        return this.useAutoBeatLength;
+    }
+
+    private autoBeatLength(): void {
+        if (this.useAutoBeatLength) {
+            this.setBarCountInternal(this.findSmallestLoopLength() / this.timeSigUp);
+        }
+    }
+
+    setIsUsingAutoBeatLength(isOn: boolean): void {
+        this.useAutoBeatLength = isOn;
+        this.autoBeatLength();
+        if (isOn) {
+            this.lockBars();
+        } else {
+            this.unlockBars();
+        }
+        this.publisher.notifySubs(BeatEvents.AutoBeatSettingsChanged);
+    }
+
+    barsLocked(): boolean {
+        return this.barSettingsLocked;
+    }
+
+    lockBars(): void {
+        this.barSettingsLocked = true;
+        this.publisher.notifySubs(BeatEvents.LockingChanged);
+    }
+
+    unlockBars(): void {
+        this.barSettingsLocked = false;
+        this.publisher.notifySubs(BeatEvents.LockingChanged);
+    }
+
+    bakeLoops(): void {
+        this.tracks.forEach(track => track.bakeLoops());
     }
 
     setName(newName: string): void {
         this.name = newName;
-        this.publisher.notifySubs(BeatEvents.NewName);
+        this.publisher.notifySubs(BeatEvents.NameChanged);
     }
 
     getName(): string {
         return this.name;
-    }
-
-    isLooping(): boolean {
-        return this.looping;
-    }
-
-    getLoopLength(): number {
-        return this.loopLength;
-    }
-
-    delete(): void {
-        this.publisher.notifySubs(BeatEvents.WantsRemoval);
-    }
-
-    bakeLoops(): void {
-        if (this.isLooping()) {
-            this.unitRecord.forEach((unit, i) => {
-                const reprUnitAtPos = this.getUnitByIndex(i);
-                if (reprUnitAtPos) {
-                    unit.mimic(reprUnitAtPos);
-                }
-            });
-            this.publisher.notifySubs(BeatEvents.Baked);
-            this.setLooping(false);
-        } else {
-            this.publisher.notifySubs(BeatEvents.Baked);
-        }
     }
 }

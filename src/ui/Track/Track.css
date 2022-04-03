@@ -1,0 +1,65 @@
+.track > * {
+    padding-right: 1em;
+    padding-left: 1em;
+}
+
+.vertical-mode .track > * {
+    padding-right: 0;
+    padding-left: 0;
+}
+
+.track-unit-block {
+    height: 2em;
+}
+
+.vertical-mode .track-unit-block {
+    height: auto;
+    width: 2em;
+}
+
+.track-title {
+    width: 3em;
+    line-height: 32px;
+    margin: 0;
+}
+
+.vertical-mode .track-title {
+    display: block;
+    width: auto;
+    text-align: center;
+}
+
+.track-spacer {
+    display: inline-block;
+    width: 1em;
+    height: 2em;
+}
+
+.vertical-mode .track-spacer {
+    display: block;
+    width: 2em;
+    height: 1em;
+}
+
+.track-main {
+    display: inline-flex;
+}
+
+.vertical-mode .track-main {
+    width: 2em;
+    margin-right: 4px;
+    display: block;
+}
+
+.track-settings-container {
+    display: flex;
+}
+
+.track {
+    width: max-content;
+    margin-bottom: 4px;
+}
+
+.vertical-mode .track {
+    display: inline-block;
+}
