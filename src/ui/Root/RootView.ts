@@ -62,8 +62,8 @@ export default class RootView extends UINode {
 
     setMainBeatGroup(beat: Beat): void {
         this.focusedBeat = beat;
-        this.beatSettingsView.setBeatGroup(this.focusedBeat);
-        this.beatView.setBeatGroup(this.focusedBeat);
+        this.beatSettingsView.setBeat(this.focusedBeat);
+        this.beatView.setBeat(this.focusedBeat);
         this.stageTitleBarView.setBeat(this.focusedBeat);
     }
 

@@ -29,17 +29,17 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
         this.title = options.title;
         this.currentOrientation = options.orientation ?? "horizontal";
         this.subscription = this.beat.addSubscriber(this, EventTypeSubscriptions);
-        this.setupBeatViews();
+        this.setupTrackViews();
     }
 
     notify(publisher: unknown, event: EventTypeSubscriptions): void {
         if (event === BeatEvents.TrackListChanged) {
-            this.setupBeatViews();
+            this.setupTrackViews();
             this.redraw();
         }
     }
 
-    private setupBeatViews(): void {
+    private setupTrackViews(): void {
         const newCount = this.beat.getTrackCount();
         for (let i = 0; i < newCount; i++) {
             const beat = this.beat.getTrackByIndex(i);
@@ -69,11 +69,11 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
         this.redraw();
     }
 
-    setBeatGroup(newBeatGroup: Beat): void {
-        this.beat = newBeatGroup;
+    setBeat(newBeat: Beat): void {
+        this.beat = newBeat;
         this.subscription.unbind();
         this.subscription = this.beat.addSubscriber(this, BeatEvents.TrackListChanged);
-        this.setupBeatViews();
+        this.setupTrackViews();
         this.redraw();
     }
 

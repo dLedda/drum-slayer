@@ -35,7 +35,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber<Even
         this.setupBindings();
     }
 
-    setBeatGroup(newBeat: Beat): void {
+    setBeat(newBeat: Beat): void {
         this.beat = newBeat;
         this.setupBindings();
         EventTypeSubscriptions.forEach(eventType => this.notify(null, eventType));
@@ -78,7 +78,7 @@ export default class BeatSettingsView extends UINode implements ISubscriber<Even
             if (this.trackSettingsViews[i]) {
                 this.trackSettingsViews[i].setBeat(this.beat.getTrackByIndex(i));
             } else {
-                this.trackSettingsViews.push(new TrackSettingsView({ track: this.beat.getTrackByIndex(i) }));
+                this.trackSettingsViews.unshift(new TrackSettingsView({ track: this.beat.getTrackByIndex(i) }));
             }
         }
         if (!this.trackSettingsContainer) {

@@ -20,14 +20,14 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
     private subscription: ISubscription | null = null;
     private publisher: IPublisher<TrackUnitEvent> = new Publisher<TrackUnitEvent, TrackUnitView>(this);
     private rotationTimeout: ReturnType<typeof setTimeout> | null = null;
-    private mouseUpListeners: ((ev: MouseEvent) => void)[] = [];
+    private mouseDownListeners: ((ev: MouseEvent) => void)[] = [];
     private hoverListeners: ((ev: MouseEvent) => void)[] = [];
     private blockNextMouseUp = false;
 
     constructor(options: TrackUnitUINodeOptions) {
         super(options);
         this.trackUnit = options.trackUnit;
-        this.setupBindings();
+        this.setUnit(this.trackUnit);
     }
 
     setUnit(trackUnit: TrackUnit | null): void {
@@ -45,8 +45,12 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
         this.subscription?.unbind();
         this.subscription = this.trackUnit.addSubscriber(this, EventTypeSubscriptions);
         this.hoverListeners.forEach(listener => this.getNode().removeEventListener("mouseover", listener));
+        this.mouseDownListeners.forEach(listener => this.getNode().removeEventListener("mousedown", listener));
         this.redraw();
+        this.hoverListeners.forEach(listener => this.getNode().addEventListener("mouseover", listener));
+        this.mouseDownListeners.forEach(listener => this.getNode().addEventListener("mousedown", listener));
         this.getNode().addEventListener("mousedown", (ev) => this.handleMouseDown(ev));
+        this.getNode().addEventListener("mouseout", (ev) => this.handleMouseOut(ev));
         this.getNode().addEventListener("mouseup", (ev) => this.handleMouseUp(ev));
         this.getNode().addEventListener("touchstart", (ev) => this.handleTouchStart(ev));
         this.getNode().addEventListener("touchend", (ev) => this.handleTouchEnd(ev));
@@ -56,11 +60,19 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
         if (ev.button === 1) {
             this.trackUnit.rotateType();
         } else if (ev.button === 0) {
+            this.toggle();
             this.rotationTimeout = this.rotationTimeout || setTimeout(() => {
                 this.trackUnit.rotateType();
                 this.blockNextMouseUp = true;
                 this.rotationTimeout = null;
             }, 400);
+        }
+    }
+
+    private handleMouseOut(ev: MouseEvent): void {
+        if (this.rotationTimeout) {
+            clearTimeout(this.rotationTimeout);
+            this.rotationTimeout = null;
         }
     }
 
@@ -70,7 +82,7 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
             this.rotationTimeout = null;
         }
         if (!this.blockNextMouseUp) {
-            this.mouseUpListeners.forEach(listener => listener(ev));
+            this.mouseDownListeners.forEach(listener => listener(ev));
         }
         this.blockNextMouseUp = false;
     }
@@ -148,7 +160,8 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
         this.getNode().addEventListener("mouseover", cb);
     }
 
-    onMouseUp(cb: (ev: MouseEvent) => void): void {
-        this.mouseUpListeners.push(cb);
+    onMouseDown(cb: (ev: MouseEvent) => void): void {
+        this.mouseDownListeners.push(cb);
+        this.getNode().addEventListener("mousedown", cb);
     }
 }

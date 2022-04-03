@@ -72,8 +72,8 @@ export default class TrackView extends UINode implements ISubscriber<EventTypeSu
                 } else {
                     view = new TrackUnitView({trackUnit});
                     this.trackUnitViews.push(view);
-                    view.onHover(() => this.onBeatViewHover(view));
-                    view.onMouseUp((event: MouseEvent) => this.onTrackUnitClick(event.button, i));
+                    view.onHover(() => this.onTrackUnitViewHover(view));
+                    view.onMouseDown((event: MouseEvent) => this.onTrackUnitClick(event.button, i));
                 }
             }
         }
@@ -84,15 +84,14 @@ export default class TrackView extends UINode implements ISubscriber<EventTypeSu
     private onTrackUnitClick(button: number, index: number) {
         if (button === 0) {
             TrackView.selectingUnits = true;
-            this.track.getUnitByIndex(index)?.toggle();
         } else if (button === 2) {
             TrackView.deselectingUnits = true;
             this.track.getUnitByIndex(index)?.setOn(false);
         }
     }
 
-    private onBeatViewHover(trackView: TrackUnitView) {
-        this.lastHoveredTrackUnitView = trackView;
+    private onTrackUnitViewHover(trackUnitView: TrackUnitView) {
+        this.lastHoveredTrackUnitView = trackUnitView;
         if (TrackView.selectingUnits) {
             this.lastHoveredTrackUnitView.turnOn();
         } else if (TrackView.deselectingUnits) {
