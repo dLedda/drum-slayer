@@ -69,18 +69,10 @@ export function h<
                 const attribute = (attributes as any)[key];
                 if (attribute) {
                     if (attribute instanceof Ref) {
-                        if (element.hasAttribute(key)) {
-                            element.setAttribute(key, attribute.val);
-                            attribute.watch((newVal) => {
-                                if (element.hasAttribute(key)) {
-                                    element.setAttribute(key, newVal);
-                                }
-                            });
-                        }
+                        (element as any)[key] = attribute.val;
+                        attribute.watch((newVal) => (element as any)[key] = newVal);
                     } else {
-                        if (element.hasAttribute(key)) {
-                            element.setAttribute(key, attribute);
-                        }
+                        (element as any)[key] = attribute;
                     }
                 }
             }
