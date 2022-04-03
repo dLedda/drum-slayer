@@ -73,7 +73,7 @@ export default class TrackView extends UINode implements ISubscriber<EventTypeSu
                     view = new TrackUnitView({trackUnit});
                     this.trackUnitViews.push(view);
                     view.onHover(() => this.onBeatViewHover(view));
-                    view.onMouseDown((event: MouseEvent) => this.onTrackUnitClick(event.button, i));
+                    view.onMouseUp((event: MouseEvent) => this.onTrackUnitClick(event.button, i));
                 }
             }
         }

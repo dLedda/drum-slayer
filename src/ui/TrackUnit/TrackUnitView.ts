@@ -19,9 +19,10 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
     private trackUnit: TrackUnit;
     private subscription: ISubscription | null = null;
     private publisher: IPublisher<TrackUnitEvent> = new Publisher<TrackUnitEvent, TrackUnitView>(this);
-    private touchTimeout: ReturnType<typeof setTimeout> | null = null;
-    private mouseDownListeners: ((ev: MouseEvent) => void)[] = [];
+    private rotationTimeout: ReturnType<typeof setTimeout> | null = null;
+    private mouseUpListeners: ((ev: MouseEvent) => void)[] = [];
     private hoverListeners: ((ev: MouseEvent) => void)[] = [];
+    private blockNextMouseUp = false;
 
     constructor(options: TrackUnitUINodeOptions) {
         super(options);
@@ -43,12 +44,10 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
     private setupBindings() {
         this.subscription?.unbind();
         this.subscription = this.trackUnit.addSubscriber(this, EventTypeSubscriptions);
-        this.mouseDownListeners.forEach(listener => this.getNode().removeEventListener("mousedown", listener));
         this.hoverListeners.forEach(listener => this.getNode().removeEventListener("mouseover", listener));
         this.redraw();
-        this.mouseDownListeners.forEach(listener => this.getNode().addEventListener("mousedown", listener));
-        this.hoverListeners.forEach(listener => this.getNode().addEventListener("mouseover", listener));
         this.getNode().addEventListener("mousedown", (ev) => this.handleMouseDown(ev));
+        this.getNode().addEventListener("mouseup", (ev) => this.handleMouseUp(ev));
         this.getNode().addEventListener("touchstart", (ev) => this.handleTouchStart(ev));
         this.getNode().addEventListener("touchend", (ev) => this.handleTouchEnd(ev));
     }
@@ -56,20 +55,37 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
     private handleMouseDown(ev: MouseEvent): void {
         if (ev.button === 1) {
             this.trackUnit.rotateType();
+        } else if (ev.button === 0) {
+            this.rotationTimeout = this.rotationTimeout || setTimeout(() => {
+                this.trackUnit.rotateType();
+                this.blockNextMouseUp = true;
+                this.rotationTimeout = null;
+            }, 400);
         }
     }
 
+    private handleMouseUp(ev: MouseEvent): void {
+        if (this.rotationTimeout) {
+            clearTimeout(this.rotationTimeout);
+            this.rotationTimeout = null;
+        }
+        if (!this.blockNextMouseUp) {
+            this.mouseUpListeners.forEach(listener => listener(ev));
+        }
+        this.blockNextMouseUp = false;
+    }
+
     private handleTouchStart(ev: TouchEvent): void {
-        this.touchTimeout = this.touchTimeout || setTimeout(() => {
+        this.rotationTimeout = this.rotationTimeout || setTimeout(() => {
             this.trackUnit.rotateType();
-            this.touchTimeout = null;
+            this.rotationTimeout = null;
         }, 400);
     }
 
     private handleTouchEnd(ev: TouchEvent): void {
-        if (this.touchTimeout) {
-            clearTimeout(this.touchTimeout);
-            this.touchTimeout = null;
+        if (this.rotationTimeout) {
+            clearTimeout(this.rotationTimeout);
+            this.rotationTimeout = null;
         }
     }
 
@@ -100,11 +116,15 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
                 this.getNode().classList.remove("track-unit-accent");
                 break;
             case TrackUnitType.GhostNote:
-                this.getNode().classList.remove("track-unit-accent");
                 this.getNode().classList.add("track-unit-ghost");
+                this.getNode().classList.remove("track-unit-accent");
                 break;
             case TrackUnitType.Accent:
                 this.getNode().classList.remove("track-unit-ghost");
+                this.getNode().classList.add("track-unit-accent");
+                break;
+            case TrackUnitType.GhostNoteAccent:
+                this.getNode().classList.add("track-unit-ghost");
                 this.getNode().classList.add("track-unit-accent");
                 break;
             }
@@ -125,11 +145,10 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
 
     onHover(cb: () => void): void {
         this.hoverListeners.push(cb);
-        this.setupBindings();
+        this.getNode().addEventListener("mouseover", cb);
     }
 
-    onMouseDown(cb: (ev: MouseEvent) => void): void {
-        this.mouseDownListeners.push(cb);
-        this.setupBindings();
+    onMouseUp(cb: (ev: MouseEvent) => void): void {
+        this.mouseUpListeners.push(cb);
     }
 }

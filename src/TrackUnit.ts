@@ -2,9 +2,10 @@ import {IPublisher, Publisher} from "./Publisher";
 import ISubscriber from "./Subscriber";
 
 export const enum TrackUnitType {
-    Normal="but-0",
-    GhostNote="but-1",
-    Accent="but-2",
+    Normal="tut-0",
+    GhostNote="tut-1",
+    Accent="tut-2",
+    GhostNoteAccent="tut-3",
 }
 
 export const enum TrackUnitEvent {
@@ -20,6 +21,7 @@ export default class TrackUnit implements IPublisher<TrackUnitEvent> {
         TrackUnitType.Normal,
         TrackUnitType.GhostNote,
         TrackUnitType.Accent,
+        TrackUnitType.GhostNoteAccent,
     ] as const;
     private publisher: Publisher<TrackUnitEvent, TrackUnit> = new Publisher<TrackUnitEvent, TrackUnit>(this);
     private on = false;

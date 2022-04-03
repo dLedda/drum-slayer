@@ -35,21 +35,8 @@
 
 .track-unit.track-unit-on.track-unit-accent {
     border-color: var(--color-ui-neutral-light);
-    background-color: var(--color-ui-accent);
-}
-
-.track-unit.track-unit-on.track-unit-accent:hover {
-    border-color: var(--color-ui-neutral-light);
-    background-color: var(--color-ui-accent-hover);
 }
 
 .track-unit.track-unit-on.track-unit-ghost {
-    border-color: var(--color-ui-accent);
-    background-color: var(--color-ui-accent);
     opacity: 60%;
-}
-
-.track-unit.track-unit-on.track-unit-ghost:hover {
-    border-color: var(--color-ui-accent-hover);
-    background-color: var(--color-ui-accent-hover);
 }
