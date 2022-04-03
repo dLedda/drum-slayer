@@ -35,11 +35,15 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
         this.setBeat(options.beat);
     }
 
-    setBeat(beat: Beat): void {
-        this.beat = beat;
-        this.sub?.unbind();
-        this.sub = this.beat.addSubscriber(this, EventTypeSubscriptions);
-        this.redraw();
+    setBeat(beat: Beat | null): void {
+        if (beat) {
+            this.beat = beat;
+            this.sub?.unbind();
+            this.sub = this.beat.addSubscriber(this, EventTypeSubscriptions);
+            this.redraw();
+        } else {
+            this.sub?.unbind();
+        }
     }
 
     notify(publisher: unknown, event: EventTypeSubscriptions): void {
@@ -58,7 +62,6 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
 
     private rebuildBeatUnitViews() {
         const beatUnitCount = this.beat.getBarCount() * this.beat.getTimeSigUp();
-        this.beatUnitViews.splice(beatUnitCount, this.beatUnitViews.length - beatUnitCount);
         for (let i = 0; i < beatUnitCount; i++) {
             const beatUnit = this.beat.getUnitByIndex(i);
             if (beatUnit) {
@@ -74,6 +77,8 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
                 }
             }
         }
+        const deadViews = this.beatUnitViews.splice(beatUnitCount, this.beatUnitViews.length - beatUnitCount);
+        deadViews.forEach(beatUnitView => beatUnitView.setUnit(null));
     }
 
     private onBeatUnitClick(button: number, index: number) {

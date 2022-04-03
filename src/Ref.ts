@@ -1,4 +1,22 @@
-export default class Ref<T extends { toString(): string } | string | null = string> {
+import {ISubscription} from "@/Publisher";
+
+class RefSubscription implements ISubscription {
+    private unbindCallback?: () => void;
+
+    constructor(unbindCallback: () => void) {
+        this.unbindCallback = unbindCallback;
+    }
+
+    unbind(): void {
+        this.unbindCallback?.();
+    }
+}
+
+interface Stringable {
+    toString(): string;
+}
+
+export default class Ref<T extends { toString(): string } | string | null = Stringable> {
     private watchers: Array<(newVal: T) => void> | null = null;
     private value: T;
     private asString?: string;
@@ -9,11 +27,22 @@ export default class Ref<T extends { toString(): string } | string | null = stri
         this.isString = typeof val === "string";
     }
 
-    watch(callback: (newVal: T) => void): void {
+    watch(watcher: (newVal: T) => void): ISubscription {
         if (this.watchers === null) {
             this.watchers = [];
         }
-        this.watchers.push(callback);
+        this.watchers.push(watcher);
+        return new RefSubscription(() => this.unbind(watcher));
+    }
+
+    private unbind(watcher: (newVal: T) => void): void {
+        if (!this.watchers) {
+            return;
+        }
+        const index = this.watchers.indexOf(watcher);
+        if (index !== -1) {
+            this.watchers.splice(index, 1);
+        }
     }
 
     get val(): T {

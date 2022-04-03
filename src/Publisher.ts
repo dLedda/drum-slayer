@@ -1,17 +1,21 @@
 import ISubscriber, {LEvent} from "./Subscriber";
 
-class Subscription<EventType extends LEvent, PublisherType> implements ISubscription {
+class PublisherSubscription<EventType extends LEvent> implements ISubscription {
     private subscriber: ISubscriber<EventType>;
     private readonly eventTypes: EventType[];
-    private publisher: Publisher<EventType, PublisherType>;
-    constructor(publisher: Publisher<EventType, PublisherType>, subscriber: ISubscriber<EventType>, eventTypes: EventType[]) {
+    private unbindCallback?: () => void;
+
+    constructor(subscriber: ISubscriber<EventType>, eventTypes: EventType[]) {
         this.subscriber = subscriber;
-        this.publisher = publisher;
         this.eventTypes = eventTypes;
     }
 
+    setUnbind(unbind: () => void): void {
+        this.unbindCallback = unbind;
+    }
+
     unbind(): void {
-        this.publisher.unbind(this);
+        this.unbindCallback?.();
     }
 
     getEventTypes(): EventType[] {
@@ -48,10 +52,12 @@ export class Publisher<EventType extends LEvent, PublisherType> implements IPubl
         for (const key of eventTypes) {
             this.getSubscribers(key).push(subscriber);
         }
-        return new Subscription(this, subscriber, eventTypes);
+        const sub = new PublisherSubscription(subscriber, eventTypes);
+        sub.setUnbind(() => this.unbind(sub));
+        return sub;
     }
 
-    unbind(subscription: Subscription<EventType, PublisherType>): void {
+    private unbind(subscription: PublisherSubscription<EventType>): void {
         for (const key of subscription.getEventTypes()) {
             const subs = this.getSubscribers(key);
             subs.splice(subs.indexOf(subscription.getSubscriber()), 1);

@@ -40,11 +40,18 @@ export default class BeatGroupView extends UINode implements ISubscriber<EventTy
     }
 
     private setupBeatViews(): void {
-        this.beatViews = [];
-        for (let i = 0; i < this.beatGroup.getBeatCount(); i++) {
-            this.beatViews.unshift(new BeatView({beat: this.beatGroup.getBeatByIndex(i)}));
+        const newCount = this.beatGroup.getBeatCount();
+        for (let i = 0; i < newCount; i++) {
+            const beat = this.beatGroup.getBeatByIndex(i);
+            if (beat && this.beatViews[i]) {
+                this.beatViews[i].setBeat(beat);
+            } else {
+                this.beatViews.push(new BeatView({beat: this.beatGroup.getBeatByIndex(i)}));
+            }
         }
-        if (this.currentOrientation === "vertical") {
+        const deadBeatViews = this.beatViews.splice(newCount, this.beatViews.length - newCount);
+        deadBeatViews.forEach(beatView => beatView.setBeat(null));
+        if (this.currentOrientation === "horizontal") {
             this.reverseDisplayOrder();
         }
     }
@@ -57,16 +64,16 @@ export default class BeatGroupView extends UINode implements ISubscriber<EventTy
     }
 
     private reverseDisplayOrder(): void {
-        this.beatViews = this.beatViews.reverse();
+        this.beatViews.reverse();
         this.getNode().classList.toggle("vertical");
         this.redraw();
     }
 
     setBeatGroup(newBeatGroup: BeatGroup): void {
-        this.subscription.unbind();
         this.beatGroup = newBeatGroup;
+        this.subscription.unbind();
         this.subscription = this.beatGroup.addSubscriber(this, BeatGroupEvents.BeatListChanged);
-        this.beatViews.forEach((beatView, i) => beatView.setBeat(this.beatGroup.getBeatByIndex(i)));
+        this.setupBeatViews();
         this.redraw();
     }
 

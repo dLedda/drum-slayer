@@ -1,4 +1,5 @@
 import Ref from "@/Ref";
+import {ISubscription} from "@/Publisher";
 
 export type UINodeOptions = {
 
@@ -52,38 +53,41 @@ export function h<
     T extends keyof HTMLElementTagNameMap>(
     type: T,
     attributes: IRenderAttributes<T>,
-    subNodes?: (Node | UINode | Ref<any>)[],
+    subNodes?: (Node | UINode | Ref)[],
 ): HTMLElementTagNameMap[T] {
     const element = document.createElement(type);
     if (attributes) {
         for (const key in attributes) {
-            if (key === "classes") {
-                element.classList.add(...attributes[key]!);
-            } else if (key === "saveTo") {
-                attributes.saveTo!.val = element;
-            } else {
+            if (!Object.prototype.hasOwnProperty.call(attributes, key)) {
+                continue;
+            }
+            if (key === "classes" && attributes.classes) {
+                element.classList.add(...attributes.classes);
+            } else if (key === "saveTo" && attributes.saveTo) {
+                attributes.saveTo.val = element;
+            } else if (Object.prototype.hasOwnProperty.call(attributes, key)) {
                 const attribute = (attributes as any)[key];
-                if (attribute instanceof Ref) {
-                    element[key as keyof HTMLElementTagNameMap[T]] = attribute.val;
-                    attribute.watch((newVal) => element[key as keyof HTMLElementTagNameMap[T]] = newVal);
-                } else {
-                    element[key as keyof HTMLElementTagNameMap[T]] = attribute;
+                if (attribute) {
+                    if (attribute instanceof Ref) {
+                        if (element.hasAttribute(key)) {
+                            element.setAttribute(key, attribute.val);
+                            attribute.watch((newVal) => {
+                                if (element.hasAttribute(key)) {
+                                    element.setAttribute(key, newVal);
+                                }
+                            });
+                        }
+                    } else {
+                        if (element.hasAttribute(key)) {
+                            element.setAttribute(key, attribute);
+                        }
+                    }
                 }
             }
         }
     }
     if (subNodes) {
-        for (let i = 0; i < subNodes.length; i++) {
-            const subNode = subNodes[i];
-            if (subNode instanceof UINode) {
-                element.append(subNode.render());
-            } else if (subNode instanceof Ref) {
-                subNode.watch((newVal) => element.childNodes.item(i).replaceWith(newVal.toString()));
-                element.append(q(subNode.val.toString()));
-            } else {
-                element.append(subNode);
-            }
-        }
+        attachSubs(element, subNodes);
     }
     return element;
 }
@@ -95,7 +99,31 @@ export function q(text: string): Text {
 export function frag(subs?: Node[]): DocumentFragment {
     const frag = document.createDocumentFragment();
     if (subs) {
-        frag.append(...subs);
+        attachSubs(frag, subs);
     }
     return frag;
+}
+
+function nodeRefWatcher<T>(newVal: T extends Ref<infer U> ? U : never, textNode: Text, sub: ISubscription): void {
+    if (!textNode.parentNode) {
+        sub.unbind();
+        textNode.remove();
+    } else {
+        textNode.replaceWith(newVal?.toString() ?? "null");
+    }
+}
+
+function attachSubs(node: Element | DocumentFragment, subNodes: (Node | UINode | Ref)[]): void {
+    for (let i = 0; i < subNodes.length; i++) {
+        const subNode = subNodes[i];
+        if (subNode instanceof UINode) {
+            node.append(subNode.render());
+        } else if (subNode instanceof Ref) {
+            const textNode = q(subNode.val.toString());
+            const sub = subNode.watch((newVal) => nodeRefWatcher<Ref>(newVal, textNode, sub));
+            node.append(textNode);
+        } else {
+            node.append(subNode);
+        }
+    }
 }

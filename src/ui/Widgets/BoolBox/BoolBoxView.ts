@@ -39,12 +39,12 @@ export default class BoolBoxView extends UINode {
     build(): HTMLDivElement {
         this.labelElement = h("label", {
             classes: ["bool-box-label"],
-            innerText: this.label,
             onclick: () => {
                 this.onInput(!this.checkboxElement.checked);
             },
         });
         if (this.label !== null) {
+            this.labelElement.innerText = this.label;
             this.labelElement.classList.add("visible");
         }
         this.checkboxElement = h("input", {

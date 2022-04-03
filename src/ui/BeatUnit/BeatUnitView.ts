@@ -29,11 +29,28 @@ export default class BeatUnitView extends UINode implements ISubscriber<EventTyp
         this.setupBindings();
     }
 
-    setUnit(beatUnit: BeatUnit): void {
-        this.beatUnit = beatUnit;
-        this.setupBindings();
-        this.notify(this.publisher, beatUnit.isOn() ? BeatUnitEvent.On : BeatUnitEvent.Off);
-        this.notify(this.publisher, BeatUnitEvent.TypeChange);
+    setUnit(beatUnit: BeatUnit | null): void {
+        if (beatUnit) {
+            this.beatUnit = beatUnit;
+            this.setupBindings();
+            this.notify(this.publisher, beatUnit.isOn() ? BeatUnitEvent.On : BeatUnitEvent.Off);
+            this.notify(this.publisher, BeatUnitEvent.TypeChange);
+        } else {
+            this.subscription?.unbind();
+        }
+    }
+
+    private setupBindings() {
+        this.subscription?.unbind();
+        this.subscription = this.beatUnit.addSubscriber(this, EventTypeSubscriptions);
+        this.mouseDownListeners.forEach(listener => this.getNode().removeEventListener("mousedown", listener));
+        this.hoverListeners.forEach(listener => this.getNode().removeEventListener("mouseover", listener));
+        this.redraw();
+        this.mouseDownListeners.forEach(listener => this.getNode().addEventListener("mousedown", listener));
+        this.hoverListeners.forEach(listener => this.getNode().addEventListener("mouseover", listener));
+        this.getNode().addEventListener("mousedown", (ev) => this.handleMouseDown(ev));
+        this.getNode().addEventListener("touchstart", (ev) => this.handleTouchStart(ev));
+        this.getNode().addEventListener("touchend", (ev) => this.handleTouchEnd(ev));
     }
 
     private handleMouseDown(ev: MouseEvent): void {
@@ -54,19 +71,6 @@ export default class BeatUnitView extends UINode implements ISubscriber<EventTyp
             clearTimeout(this.touchTimeout);
             this.touchTimeout = null;
         }
-    }
-
-    private setupBindings() {
-        this.subscription?.unbind();
-        this.subscription = this.beatUnit.addSubscriber(this, EventTypeSubscriptions);
-        this.mouseDownListeners.forEach(listener => this.getNode().removeEventListener("mousedown", listener));
-        this.hoverListeners.forEach(listener => this.getNode().removeEventListener("mouseover", listener));
-        this.redraw();
-        this.mouseDownListeners.forEach(listener => this.getNode().addEventListener("mousedown", listener));
-        this.hoverListeners.forEach(listener => this.getNode().addEventListener("mouseover", listener));
-        this.getNode().addEventListener("mousedown", (ev) => this.handleMouseDown(ev));
-        this.getNode().addEventListener("touchstart", (ev) => this.handleTouchStart(ev));
-        this.getNode().addEventListener("touchend", (ev) => this.handleTouchEnd(ev));
     }
 
     toggle(): void {
