@@ -7,7 +7,7 @@ if (appNode) {
     try {
         const appRoot = new RootView({
             orientation: "vertical",
-            title: "Drum Slayer",
+            title: "OBVIOUS CHANGE",
         });
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
