@@ -8,8 +8,27 @@
 }
 
 .vertical-mode .beat {
+    align-items: center;
+}
+
+.vertical-mode .beat {
     height: inherit;
     overflow-x: hidden;
     overflow-y: scroll;
-    display: block;
+}
+
+.beat-title {
+    color: var(--color-title-light);
+    text-align: center;
+    width: fit-content;
+    padding-left: 16px;
+}
+
+.vertical-mode .beat-title {
+    color: var(--color-title-light);
+    text-align: center;
+    padding-left: 0;
+}
+
+.beat-track-container {
 }

@@ -17,7 +17,7 @@ const EventTypeSubscriptions = [
     TrackEvents.LoopLengthChanged,
     TrackEvents.DisplayTypeChanged,
 ];
-type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
+type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
 export default class TrackSettingsView extends UINode implements ISubscriber<EventTypeSubscriptions> {
     private track: Track;

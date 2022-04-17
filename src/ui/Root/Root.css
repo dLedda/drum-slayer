@@ -9,6 +9,7 @@
     --color-ui-neutral-dark-hover: #a1a1a1;
     --color-ui-neutral-dark-active: #c1c1c1;
     --color-bg-light: #464646;
+    --color-bg-medium: #323232;
     --color-bg-dark: #282828;
     --color-p-light: #fafafa;
     --color-p-light-hover: #fafafa;
@@ -45,7 +46,6 @@
 .root-settings {
     z-index: 1;
     width: 28em;
-    padding: 0 0 0 2em;
     background-color: var(--color-bg-light);
     overflow: scroll;
     display: inline-block;
@@ -97,13 +97,46 @@
 }
 
 .vertical-mode .root-beat-stage {
-    margin: 5em auto auto;
+    margin: auto auto;
     padding-left: 3em;
     height: 100vh;
 }
 
 .sidebar-visible .root-beat-stage {
     max-width: calc(100vw - 30em);
+}
+
+.root-sidebar-left-strip {
+    text-align: right;
+    writing-mode: sideways-lr;
+    background-color: var(--color-bg-light);
+}
+
+.root-sidebar-left-strip > * {
+    display: inline-block;
+}
+
+.root-sidebar-left-tab {
+    display: inline-block;
+    width: 100%;
+    padding: 8px 3px 8px 3px;
+}
+
+.root-sidebar-left-tab.active {
+    background-color: var(--color-bg-medium);
+    display: inline-block;
+}
+
+.root-sidebar-add-beat {
+    width: 100%;
+    padding: 8px 3px 8px 3px;
+}
+
+.root-sidebar-add-beat:hover,
+.root-sidebar-left-tab:hover:not(.active) {
+    cursor: pointer;
+    background-color: var(--color-ui-neutral-dark);
+    transition: background-color 200ms;
 }
 
 @media screen and (max-width: 900px) {

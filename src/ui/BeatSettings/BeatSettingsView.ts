@@ -19,7 +19,7 @@ const EventTypeSubscriptions = [
     BeatEvents.LockingChanged,
     BeatEvents.AutoBeatSettingsChanged,
 ];
-type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
+type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
 export default class BeatSettingsView extends UINode implements ISubscriber<EventTypeSubscriptions> {
     private beat: Beat;

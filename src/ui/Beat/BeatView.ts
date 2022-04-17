@@ -4,21 +4,21 @@ import TrackView from "@/ui/Track/TrackView";
 import "./Beat.css";
 import ISubscriber from "@/Subscriber";
 import {ISubscription} from "@/Publisher";
+import EditableTextFieldView from "@/ui/Widgets/EditableTextFIeld/EditableTextFieldView";
 
 export type BeatUINodeOptions = UINodeOptions & {
-    title: string,
     beat: Beat,
     orientation?: "horizontal" | "vertical",
 };
 
 const EventTypeSubscriptions = [
-    BeatEvents.TrackListChanged
-];
-type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
+    BeatEvents.TrackListChanged,
+] as const;
+type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
 export default class BeatView extends UINode implements ISubscriber<EventTypeSubscriptions> {
-    private title: string;
     private beat: Beat;
+    private title: EditableTextFieldView;
     private trackViews: TrackView[] = [];
     private currentOrientation: "vertical" | "horizontal";
     private subscription: ISubscription;
@@ -26,9 +26,13 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
     constructor(options: BeatUINodeOptions) {
         super(options);
         this.beat = options.beat;
-        this.title = options.title;
         this.currentOrientation = options.orientation ?? "horizontal";
         this.subscription = this.beat.addSubscriber(this, EventTypeSubscriptions);
+        this.title = new EditableTextFieldView({
+            setter: (text: string) => this.beat.setName(text),
+            noEmpty: true,
+            initialText: this.beat.getName().val,
+        });
         this.setupTrackViews();
     }
 
@@ -69,19 +73,37 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
         this.redraw();
     }
 
-    setBeat(newBeat: Beat): void {
-        this.beat = newBeat;
-        this.subscription.unbind();
-        this.subscription = this.beat.addSubscriber(this, BeatEvents.TrackListChanged);
+    private onNewBeat(): void {
+        this.beat.getName().watch((newVal) => {
+            this.title.setText(newVal);
+        });
+        this.title.setText(this.beat.getName().val);
+        EventTypeSubscriptions.forEach(event => this.notify(this, event));
         this.setupTrackViews();
         this.redraw();
     }
 
+    setBeat(newBeat: Beat): void {
+        this.beat = newBeat;
+        this.subscription.unbind();
+        this.subscription = this.beat.addSubscriber(this, BeatEvents.TrackListChanged);
+        this.onNewBeat();
+    }
+
     build(): HTMLDivElement {
         return h("div", {
-            classes: ["beat"],
+            className: "beat",
         },[
-            ...this.trackViews
+            h("h2", {
+                className: "beat-title",
+            }, [
+                this.title,
+            ]),
+            h("div", {
+                className: "beat-track-container",
+            }, [
+                ...this.trackViews,
+            ]),
         ]);
     }
 }

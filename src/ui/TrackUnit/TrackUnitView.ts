@@ -13,7 +13,7 @@ const EventTypeSubscriptions = [
     TrackUnitEvent.Off,
     TrackUnitEvent.TypeChange,
 ];
-type EventTypeSubscriptions = FlatArray<typeof EventTypeSubscriptions, 1>;
+type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
 export default class TrackUnitView extends UINode implements ISubscriber<EventTypeSubscriptions> {
     private trackUnit: TrackUnit;

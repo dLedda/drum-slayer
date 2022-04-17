@@ -1,4 +1,4 @@
-import TrackUnit from "@/TrackUnit";
+import TrackUnit, {TrackUnitType} from "@/TrackUnit";
 import {IPublisher, Publisher} from "@/Publisher";
 import ISubscriber from "@/Subscriber";
 import {isPosInt} from "@/utils";
@@ -22,6 +22,20 @@ export const enum TrackEvents {
     LoopLengthChanged="be-4",
     WantsRemoval="be-5",
     Baked="be-6",
+    DeepChange="be-7",
+}
+
+export type TrackSerial = {
+    name: string,
+    timeSigUp: number,
+    timeSigDown: number,
+    units: {
+        isOn: boolean[],
+        type: TrackUnitType[],
+    },
+    barCount: number,
+    loopLength: number,
+    looping: boolean,
 }
 
 export default class Track implements IPublisher<TrackEvents> {
@@ -44,6 +58,30 @@ export default class Track implements IPublisher<TrackEvents> {
         Track.count++;
         this.loopLength = options?.loopLength ?? this.timeSigUp * this.barCount;
         this.looping = options?.isLooping ?? false;
+    }
+
+    static deserialise(serial: any): Track {
+        if (!Track.isTrackSerial(serial)) {
+            throw new Error("Invalid track serial.");
+        }
+        const track = new Track({
+            bars: serial.barCount,
+            isLooping: serial.looping,
+            loopLength: serial.loopLength,
+            name: serial.name,
+            timeSig: {
+                up: serial.timeSigUp,
+                down: serial.timeSigDown,
+            },
+        });
+        const units = serial.units.isOn.map((isOn, i) => new TrackUnit({
+            on: isOn,
+            type: serial.units.type[i],
+            parent: track,
+        }));
+        track.unitRecord.length = 0;
+        track.unitRecord.push(...units);
+        return track;
     }
 
     setLoopLength(loopLength: number): void {
@@ -105,7 +143,9 @@ export default class Track implements IPublisher<TrackEvents> {
         } else if (newBarCount > this.unitRecord.length) {
             const barsToAdd = newBarCount - this.unitRecord.length;
             for (let i = 0; i < barsToAdd; i++) {
-                this.unitRecord.push(new TrackUnit());
+                this.unitRecord.push(new TrackUnit({
+                    parent: this,
+                }));
             }
         }
     }
@@ -164,5 +204,37 @@ export default class Track implements IPublisher<TrackEvents> {
         } else {
             this.publisher.notifySubs(TrackEvents.Baked);
         }
+    }
+
+    serialise(): Readonly<TrackSerial> {
+        return {
+            name: this.name,
+            timeSigUp: this.timeSigUp,
+            timeSigDown: this.timeSigDown,
+            units: {
+                isOn: this.unitRecord.map(unit => unit.isOn()),
+                type: this.unitRecord.map(unit => unit.getType()),
+            },
+            barCount: this.barCount,
+            loopLength: this.loopLength,
+            looping: this.looping,
+        } as const;
+    }
+
+    static isTrackSerial(serial: any): serial is TrackSerial {
+        const correctTypes =  typeof serial.name === "string" &&
+            typeof serial.timeSigUp === "number" &&
+            typeof serial.timeSigDown === "number" &&
+            typeof serial.units === "object" &&
+            Array.isArray(serial.units.isOn) &&
+            Array.isArray(serial.units.type) &&
+            typeof serial.barCount === "number" &&
+            typeof serial.loopLength === "number" &&
+            typeof serial.looping === "boolean";
+        return correctTypes && serial.units.isOn.length === serial.units.type.length;
+    }
+
+    alertDeepChange(): void {
+        this.publisher.notifySubs(TrackEvents.DeepChange);
     }
 }

@@ -2,6 +2,7 @@ import Track, {TrackEvents, TrackInitOptions} from "@/Track";
 import {IPublisher, Publisher} from "@/Publisher";
 import ISubscriber from "@/Subscriber";
 import {greatestCommonDivisor, isPosInt} from "@/utils";
+import Ref from "@/Ref";
 
 type BeatGroupInitOptions = {
     barCount: number;
@@ -13,6 +14,17 @@ type BeatGroupInitOptions = {
     name?: string,
 };
 
+export type BeatSerial = {
+    tracks: Record<string, any>[],
+    barCount: number,
+    timeSigUp: number,
+    globalLoopLength: number,
+    globalIsLooping: boolean,
+    useAutoBeatLength: boolean,
+    barSettingsLocked: boolean,
+    name: string,
+};
+
 export const enum BeatEvents {
     TrackOrderChanged="be-0",
     TrackListChanged="be-1",
@@ -22,14 +34,17 @@ export const enum BeatEvents {
     LockingChanged="be-5",
     GlobalLoopLengthChanged="be-5",
     GlobalDisplayTypeChanged="be-6",
-    NameChanged="be-7",
+    DeepChange="be-7",
 }
 
-type EventTypeSubscriptions =
-    | TrackEvents.LoopLengthChanged
-    | TrackEvents.DisplayTypeChanged
-    | TrackEvents.WantsRemoval
-    | TrackEvents.Baked;
+const EventTypeSubscriptions = [
+    TrackEvents.LoopLengthChanged,
+    TrackEvents.DisplayTypeChanged,
+    TrackEvents.WantsRemoval,
+    TrackEvents.DeepChange,
+    TrackEvents.Baked,
+];
+type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
 export default class Beat implements IPublisher<BeatEvents>, ISubscriber<EventTypeSubscriptions> {
     private static globalCounter = 0;
@@ -41,14 +56,14 @@ export default class Beat implements IPublisher<BeatEvents>, ISubscriber<EventTy
     private globalIsLooping: boolean;
     private useAutoBeatLength: boolean;
     private barSettingsLocked = false;
-    private name: string;
+    private name: Ref<string>;
 
     constructor(options?: BeatGroupInitOptions) {
         Beat.globalCounter++;
         if (options?.name) {
-            this.name = options.name;
+            this.name = Ref.new<string>(options.name);
         } else {
-            this.name = `Pattern ${Beat.globalCounter}`;
+            this.name = Ref.new<string>(`Pattern ${Beat.globalCounter}`);
         }
         if (options?.tracks) {
             for (const trackOptions of options.tracks) {
@@ -60,6 +75,22 @@ export default class Beat implements IPublisher<BeatEvents>, ISubscriber<EventTy
         this.globalLoopLength = options?.loopLength ?? this.timeSigUp;
         this.globalIsLooping = options?.isLooping ?? false;
         this.useAutoBeatLength = options?.useAutoBeatLength ?? false;
+    }
+
+    static deserialise(serial: any): Beat {
+        if (!Beat.isBeatSerial(serial)) {
+            throw new Error("Not a valid beat serial");
+        }
+        const newBeat = new Beat({
+            loopLength: serial.globalLoopLength,
+            barCount: serial.barCount,
+            isLooping: serial.globalIsLooping,
+            name: serial.name,
+            timeSigUp: serial.timeSigUp,
+            useAutoBeatLength: serial.useAutoBeatLength,
+        });
+        serial.tracks.forEach(trackSerial => newBeat.addTrack(Track.deserialise(trackSerial)));
+        return newBeat;
     }
 
     notify(publisher: unknown, event: EventTypeSubscriptions): void {
@@ -75,9 +106,10 @@ export default class Beat implements IPublisher<BeatEvents>, ISubscriber<EventTy
             this.setIsUsingAutoBeatLength(false);
             break;
         }
+        this.publisher.notifySubs(BeatEvents.DeepChange);
     }
 
-    addSubscriber(subscriber: ISubscriber<BeatEvents>, eventType: BeatEvents | BeatEvents[]): { unbind: () => void } {
+    addSubscriber(subscriber: ISubscriber<BeatEvents>, eventType: BeatEvents | Readonly<BeatEvents[]>): { unbind: () => void } {
         return this.publisher.addSubscriber(subscriber, eventType);
     }
 
@@ -220,25 +252,27 @@ export default class Beat implements IPublisher<BeatEvents>, ISubscriber<EventTy
         return this.tracks.indexOf(this.getTrackByKey(trackKey)) < this.tracks.length - 1;
     }
 
-    addTrack(options?: TrackInitOptions): Track {
-        options = {
-            timeSig: {
-                up: this.timeSigUp,
-                down: 4,
-            },
-            bars: this.barCount,
-            isLooping: this.globalIsLooping,
-            loopLength: this.globalLoopLength,
-            ...options
-        };
-        const newTrack = new Track(options);
+    addTrack(track: Track): void;
+    addTrack(options?: TrackInitOptions): Track;
+    addTrack(optionsOrTrack?: Track | TrackInitOptions): Track | void {
+        let newTrack: Track;
+        if (optionsOrTrack instanceof Track) {
+            newTrack = optionsOrTrack;
+        } else {
+            optionsOrTrack = {
+                timeSig: {
+                    up: this.timeSigUp,
+                    down: 4,
+                },
+                bars: this.barCount,
+                isLooping: this.globalIsLooping,
+                loopLength: this.globalLoopLength,
+                ...optionsOrTrack
+            };
+            newTrack = new Track(optionsOrTrack);
+        }
         this.tracks.push(newTrack);
-        newTrack.addSubscriber(this, [
-            TrackEvents.LoopLengthChanged,
-            TrackEvents.WantsRemoval,
-            TrackEvents.DisplayTypeChanged,
-            TrackEvents.Baked,
-        ]);
+        newTrack.addSubscriber(this, EventTypeSubscriptions);
         this.publisher.notifySubs(BeatEvents.TrackListChanged);
         return newTrack;
     }
@@ -295,11 +329,33 @@ export default class Beat implements IPublisher<BeatEvents>, ISubscriber<EventTy
     }
 
     setName(newName: string): void {
-        this.name = newName;
-        this.publisher.notifySubs(BeatEvents.NameChanged);
+        this.name.val = newName;
     }
 
-    getName(): string {
+    getName(): Ref<string> {
         return this.name;
+    }
+
+    serialise(): Readonly<BeatSerial> {
+        return {
+            tracks: this.tracks.map(track => track.serialise()),
+            barCount: this.barCount,
+            timeSigUp: this.timeSigUp,
+            globalLoopLength: this.globalLoopLength,
+            globalIsLooping: this.globalIsLooping,
+            useAutoBeatLength: this.useAutoBeatLength,
+            barSettingsLocked: this.barSettingsLocked,
+            name: this.name.val,
+        } as const;
+    }
+
+    static isBeatSerial(serial: any): serial is BeatSerial {
+        return Array.isArray(serial.tracks) &&
+            typeof serial.barCount === "number" &&
+            typeof serial.timeSigUp === "number" &&
+            typeof serial.globalLoopLength === "number" &&
+            typeof serial.globalIsLooping === "boolean" &&
+            typeof serial.useAutoBeatLength === "boolean" &&
+            typeof serial.barSettingsLocked === "boolean";
     }
 }

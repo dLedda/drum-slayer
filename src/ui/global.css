@@ -76,26 +76,26 @@ body {
     font-family: 'DMSans';
     font-style: normal;
     font-weight: 400;
-    src: url(./DMSans-Regular.ttf) format('woff2');
+    src: url(assets/fonts/DMSans-Regular.ttf) format('woff2');
 }
 
 @font-face {
     font-family: 'DMSans';
     font-style: normal;
     font-weight: 600;
-    src: url(./DMSans-Bold.ttf) format('woff2');
+    src: url(assets/fonts/DMSans-Bold.ttf) format('woff2');
 }
 
 @font-face {
     font-family: 'DMSans';
     font-style: italic;
     font-weight: 400;
-    src: url(./DMSans-Italic.ttf) format('woff2');
+    src: url(assets/fonts/DMSans-Italic.ttf) format('woff2');
 }
 
 @font-face {
     font-family: 'DMSans';
     font-style: italic;
     font-weight: 600;
-    src: url(./DMSans-BoldItalic.ttf) format('woff2');
+    src: url(assets/fonts/DMSans-BoldItalic.ttf) format('woff2');
 }

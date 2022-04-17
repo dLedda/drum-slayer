@@ -42,12 +42,12 @@ export class Publisher<EventType extends LEvent, PublisherType> implements IPubl
         this.subscribers = new Map();
     }
 
-    addSubscriber(subscriber: ISubscriber<EventType>, subscribeTo: EventType | EventType[]): ISubscription {
+    addSubscriber(subscriber: ISubscriber<EventType>, subscribeTo: EventType | Readonly<EventType[]>): ISubscription {
         let eventTypes: EventType[] = [];
-        if (!Array.isArray(subscribeTo)) {
+        if (typeof subscribeTo === "string") {
             eventTypes.push(subscribeTo);
         } else {
-            eventTypes = subscribeTo;
+            eventTypes = subscribeTo.slice();
         }
         for (const key of eventTypes) {
             this.getSubscribers(key).push(subscriber);
