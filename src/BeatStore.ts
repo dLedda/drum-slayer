@@ -18,6 +18,7 @@ export default class BeatStore implements ISubscriber<EventTypeSubscriptions> {
     private activeBeat: Ref<Beat>;
     private onBeatChangeCbs: (() => void)[] = [];
     private autoSave: boolean;
+    private orientation: "horizontal" | "vertical" | null = null;
 
     constructor(options: { loadFromLocalStorage: boolean, autoSave: boolean }) {
         this.autoSave = options.autoSave;
@@ -103,6 +104,7 @@ export default class BeatStore implements ISubscriber<EventTypeSubscriptions> {
             localStorage.setItem("drum-slayer-save", JSON.stringify({
                 beats: serials,
                 activeBeatIndex: this.beats.indexOf(this.activeBeat.val),
+                orientation: this.orientation,
             }));
         }
     }
@@ -110,15 +112,26 @@ export default class BeatStore implements ISubscriber<EventTypeSubscriptions> {
     loadFromSave(source: any): void {
         this.beats.length = 0;
         if (Array.isArray(source.beats)
-            && (typeof source.activeBeatIndex === "number" || typeof source.activeBeatIndex === "undefined")) {
+            && (typeof source.activeBeatIndex === "number" || typeof source.activeBeatIndex === "undefined")
+            && typeof source.orientation === "string") {
             try {
                 source.beats.forEach((beat: any) => this.beats.push(Beat.deserialise(beat)));
                 if (typeof source.activeBeatIndex === "number") {
                     this.activeBeat.val = this.beats[source.activeBeatIndex];
                 }
+                this.orientation = source.orientation;
             } catch (err) {
                 console.error(err);
             }
         }
+    }
+
+    setOrientation(orientation: "horizontal" | "vertical"): void {
+        this.orientation = orientation;
+        this.save("localStorage");
+    }
+
+    getSavedOrientation(): "horizontal" | "vertical" | null {
+        return this.orientation;
     }
 }

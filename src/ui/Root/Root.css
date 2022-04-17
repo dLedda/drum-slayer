@@ -107,8 +107,7 @@
 }
 
 .root-sidebar-left-strip {
-    text-align: right;
-    writing-mode: sideways-lr;
+    writing-mode: vertical-rl;
     background-color: var(--color-bg-light);
 }
 
@@ -117,6 +116,7 @@
 }
 
 .root-sidebar-left-tab {
+    transform: rotate(-180deg);
     display: inline-block;
     width: 100%;
     padding: 8px 3px 8px 3px;

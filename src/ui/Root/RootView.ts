@@ -30,12 +30,12 @@ export default class RootView extends UINode {
             loadFromLocalStorage: true,
             autoSave: true,
         });
-        this.currentOrientation = options.orientation ?? "horizontal";
         this.activeBeat = this.beatStore.getActiveBeat();
         this.activeBeat.watch((newVal) => {
             this.beatSettingsView.setBeat(newVal);
             this.beatView.setBeat(newVal);
         });
+        this.currentOrientation = this.beatStore.getSavedOrientation() ?? options.orientation ?? "horizontal";
         this.beatView = new BeatView({
             beat: this.activeBeat.val,
             orientation: this.currentOrientation,
@@ -77,6 +77,7 @@ export default class RootView extends UINode {
         } else {
             this.getNode().classList.remove("vertical-mode");
         }
+        this.beatStore.setOrientation(orientation);
         this.beatView.setOrientation(orientation);
     }
 
@@ -89,13 +90,13 @@ export default class RootView extends UINode {
             className: "root-sidebar-left-strip",
         }, [
             h("div", {
+                saveTo: this.sidebarLeftTabs
+            }, this.buildTabs()),
+            h("div", {
                 className: "root-sidebar-add-beat",
                 onclick: () => this.beatStore.addNewBeat(),
                 innerText: "+",
             }),
-            h("div", {
-                saveTo: this.sidebarLeftTabs
-            }, this.buildTabs()),
         ]);
     }
 
@@ -114,7 +115,7 @@ export default class RootView extends UINode {
                 }
             });
             return node;
-        }).reverse();
+        });
     }
 
     private buildSidebarQuickButtons(): HTMLElement {
