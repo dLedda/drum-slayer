@@ -1,3 +1,4 @@
-# arne-drums
+# Drum Slayer
+Drum beat visualiser and editor with looping and bar synchronisation.
 
-Drum beat visualiser and editor
+Try it out: https://djledda.de/drum-slayer
