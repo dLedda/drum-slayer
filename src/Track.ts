@@ -1,7 +1,6 @@
-import TrackUnit, {TrackUnitType} from "@/TrackUnit";
-import {IPublisher, Publisher} from "@/Publisher";
-import ISubscriber from "@/Subscriber";
-import {isPosInt} from "@/utils";
+import TrackUnit, { TrackUnitType } from "@/TrackUnit";
+import { isPosInt } from "@/utils";
+import { IPublisher, ISubscriber, Publisher } from "@djledda/ladder";
 
 export type TrackInitOptions = {
     timeSig?: {
@@ -53,7 +52,7 @@ export default class Track implements IPublisher<TrackEvents> {
     constructor(options?: TrackInitOptions) {
         this.key = `B-${Track.count}`;
         this.name = options?.name ?? this.key;
-        this.setTimeSignature({up: options?.timeSig?.up ?? 4, down: options?.timeSig?.down ?? 4});
+        this.setTimeSignature({ up: options?.timeSig?.up ?? 4, down: options?.timeSig?.down ?? 4 });
         this.setBarCount(options?.bars ?? 4);
         Track.count++;
         this.loopLength = options?.loopLength ?? this.timeSigUp * this.barCount;
@@ -113,11 +112,11 @@ export default class Track implements IPublisher<TrackEvents> {
     }
 
     setTimeSigUp(timeSigUp: number): void {
-        this.setTimeSignature({up: timeSigUp});
+        this.setTimeSignature({ up: timeSigUp });
     }
 
     setTimeSigDown(timeSigUp: number): void {
-        this.setTimeSignature({down: timeSigUp});
+        this.setTimeSignature({ down: timeSigUp });
     }
 
     setBarCount(barCount: number): void {

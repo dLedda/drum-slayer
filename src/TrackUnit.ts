@@ -1,6 +1,5 @@
-import {IPublisher, Publisher} from "./Publisher";
-import ISubscriber from "./Subscriber";
 import Track from "@/Track";
+import { IPublisher, ISubscriber, Publisher } from "@djledda/ladder";
 
 export const enum TrackUnitType {
     Normal="tut-0",

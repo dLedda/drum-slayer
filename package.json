@@ -14,22 +14,14 @@
   "author": "Daniel Ledda",
   "license": "ISC",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.29.2",
-    "@typescript-eslint/parser": "^4.29.2",
-    "@webpack-cli/generators": "^2.3.0",
-    "css-loader": "^6.2.0",
-    "eslint": "^7.32.0",
-    "mini-css-extract-plugin": "^2.2.0",
-    "source-map-support": "^0.5.19",
-    "style-loader": "^3.2.1",
-    "ts-loader": "^9.2.5",
-    "tslib": "^2.0.0",
-    "typescript": "^4.4.0-insiders.20210805",
-    "webpack": "^5.51.1",
-    "webpack-cli": "^4.8.0",
-    "webpack-dev-server": "^4.0.0"
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
+    "eslint": "^8.16.0",
+    "typescript": "^4.7.2",
+    "vite": "^2.9.9"
   },
   "dependencies": {
+    "@djledda/ladder": "^1.0.2",
     "file-loader": "^6.2.0"
   }
 }

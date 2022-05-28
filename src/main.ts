@@ -9,8 +9,6 @@ if (appNode) {
             orientation: "vertical",
             title: "Drum Slayer",
         });
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
         window.appRoot = appRoot;
         appNode.appendChild(appRoot.render());
         console.log("OK!");

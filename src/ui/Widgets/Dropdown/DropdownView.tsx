@@ -1,23 +1,22 @@
 import "./Dropdown.css";
-import UINode, {h, UINodeOptions} from "@/ui/UINode";
-import Ref, {MaybeRef} from "@/Ref";
+import { Capsule, h, ICapsule, Rung, RungOptions } from "@djledda/ladder";
 
 export type DropdownViewOption = {
     label: string,
     value: string,
 };
 
-export type DropdownUINodeOptions = UINodeOptions & {
-    options: MaybeRef<DropdownViewOption[]>,
+export type DropdownUINodeOptions = RungOptions & {
+    options: ICapsule<DropdownViewOption[]> | DropdownViewOption[],
 };
 
-export default class DropdownView extends UINode {
-    private options: Ref<DropdownViewOption[]>;
-    private select = Ref.new<HTMLSelectElement | null>(null);
+export default class DropdownView extends Rung {
+    private options: ICapsule<DropdownViewOption[]>;
+    private select = Capsule.new<HTMLSelectElement | null>(null);
 
     constructor(options: DropdownUINodeOptions) {
         super(options);
-        this.options = Ref.new(options.options);
+        this.options = Capsule.new(options.options);
         this.options.watch((newVal) => this.updateOptionsFrom(newVal));
     }
 
@@ -32,10 +31,7 @@ export default class DropdownView extends UINode {
                 children[i].label = newOptions[i].label;
                 children[i].value = newOptions[i].value;
             } else {
-                children.push(h("option", {
-                    label: newOptions[i].label,
-                    value: newOptions[i].value,
-                }));
+                children.push(<option label={newOptions[i].label} value={newOptions[i].value} /> as HTMLOptionElement);
             }
         }
         if (children.length - newOptions.length > 0) {
@@ -45,8 +41,8 @@ export default class DropdownView extends UINode {
     }
 
     protected build(): HTMLSelectElement {
-        return h("select", {
-            saveTo: this.select,
-        }, this.options.val.map(opt => h("option", {label: opt.label})));
+        return <select saveTo={this.select}>
+            {this.options.val.map(opt => <option label={opt.label} />)}
+        </select> as HTMLSelectElement;
     }
 }

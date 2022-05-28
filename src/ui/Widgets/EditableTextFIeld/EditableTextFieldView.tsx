@@ -1,13 +1,13 @@
-import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import "./EditableTextFieldView.css";
+import { Rung, h, RungOptions } from "@djledda/ladder";
 
-export type EditableTextFieldViewOptions = UINodeOptions & {
+export type EditableTextFieldViewOptions = RungOptions & {
     initialText?: string,
     setter?: (newString: string) => void,
     noEmpty?: boolean,
 };
 
-export default class EditableTextFieldView extends UINode {
+export default class EditableTextFieldView extends Rung {
     private text: string;
     private titleInput!: HTMLInputElement;
     private setter: (newString: string) => void;
@@ -30,12 +30,12 @@ export default class EditableTextFieldView extends UINode {
         }
     }
 
-    build(): HTMLSpanElement {
-        this.titleInput = h("input", {
-            value: this.text,
-            classes: ["editable-text-field-view"],
-            type: "text",
-            oninput: (event: Event) => {
+    build(): Node {
+        this.titleInput = <input
+            value={this.text}
+            className={"editable-text-field-view"}
+            type={"text"}
+            oninput={(event: Event) => {
                 const input = (event.target as HTMLInputElement).value;
                 if (input === "") {
                     if (!this.noEmpty) {
@@ -45,27 +45,28 @@ export default class EditableTextFieldView extends UINode {
                     this.setter(input);
                     this.lastNonEmptyInput = input;
                 }
-            },
-            onblur: (event: FocusEvent) => {
+            }}
+            onblur={(event: FocusEvent) => {
                 if ((event.target as HTMLInputElement).value === "") {
                     this.setText(this.lastNonEmptyInput);
                 }
                 this.titleInput.replaceWith(this.titleDisplay);
-            },
-            onkeyup: (event: KeyboardEvent) => {
+            }}
+            onkeyup={(event: KeyboardEvent) => {
                 if (event.key === "Enter") {
                     (event.target as HTMLInputElement).blur();
                 }
-            },
-        });
-        this.titleDisplay = h("div", {
-            innerText: this.text,
-            classes: ["editable-text-field-view"],
-            onclick: () => {
+            }}
+        /> as HTMLInputElement;
+
+        this.titleDisplay = <div
+            innerText={this.text}
+            className={"editable-text-field-view"}
+            onclick={() => {
                 this.titleDisplay.replaceWith(this.titleInput);
                 this.titleInput.focus();
-            },
-        });
+            }} /> as HTMLDivElement;
+
         return this.titleDisplay;
     }
 }

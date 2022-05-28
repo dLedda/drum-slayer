@@ -1,10 +1,8 @@
-import TrackUnit, {TrackUnitEvent, TrackUnitType} from "@/TrackUnit";
-import ISubscriber from "@/Subscriber";
-import UINode, {h, UINodeOptions} from "@/ui/UINode";
-import {IPublisher, ISubscription, Publisher} from "@/Publisher";
+import TrackUnit, { TrackUnitEvent, TrackUnitType } from "@/TrackUnit";
 import "./TrackUnit.css";
+import { h, IPublisher, ISubscriber, ISubscription, Publisher, Rung, RungOptions } from "@djledda/ladder";
 
-export type TrackUnitUINodeOptions = UINodeOptions & {
+export type TrackUnitUINodeOptions = RungOptions & {
     trackUnit: TrackUnit,
 };
 
@@ -15,7 +13,7 @@ const EventTypeSubscriptions = [
 ];
 type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
-export default class TrackUnitView extends UINode implements ISubscriber<EventTypeSubscriptions> {
+export default class TrackUnitView extends Rung<HTMLElement> implements ISubscriber<EventTypeSubscriptions> {
     private trackUnit: TrackUnit;
     private subscription: ISubscription | null = null;
     private publisher: IPublisher<TrackUnitEvent> = new Publisher<TrackUnitEvent, TrackUnitView>(this);
@@ -44,16 +42,16 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
     private setupBindings() {
         this.subscription?.unbind();
         this.subscription = this.trackUnit.addSubscriber(this, EventTypeSubscriptions);
-        this.hoverListeners.forEach(listener => this.getNode().removeEventListener("mouseover", listener));
-        this.mouseDownListeners.forEach(listener => this.getNode().removeEventListener("mousedown", listener));
+        this.hoverListeners.forEach(listener => this.render().removeEventListener("mouseover", listener));
+        this.mouseDownListeners.forEach(listener => this.render().removeEventListener("mousedown", listener));
         this.redraw();
-        this.hoverListeners.forEach(listener => this.getNode().addEventListener("mouseover", listener));
-        this.mouseDownListeners.forEach(listener => this.getNode().addEventListener("mousedown", listener));
-        this.getNode().addEventListener("mousedown", (ev) => this.handleMouseDown(ev));
-        this.getNode().addEventListener("mouseout", (ev) => this.handleMouseOut(ev));
-        this.getNode().addEventListener("mouseup", (ev) => this.handleMouseUp(ev));
-        this.getNode().addEventListener("touchstart", (ev) => this.handleTouchStart(ev));
-        this.getNode().addEventListener("touchend", (ev) => this.handleTouchEnd(ev));
+        this.hoverListeners.forEach(listener => this.render().addEventListener("mouseover", listener));
+        this.mouseDownListeners.forEach(listener => this.render().addEventListener("mousedown", listener));
+        this.render().addEventListener("mousedown", (ev) => this.handleMouseDown(ev));
+        this.render().addEventListener("mouseout", (ev) => this.handleMouseOut(ev));
+        this.render().addEventListener("mouseup", (ev) => this.handleMouseUp(ev));
+        this.render().addEventListener("touchstart", (ev) => this.handleTouchStart(ev));
+        this.render().addEventListener("touchend", (ev) => this.handleTouchEnd(ev));
     }
 
     private handleMouseDown(ev: MouseEvent): void {
@@ -116,28 +114,28 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
     notify(publisher: unknown, event: EventTypeSubscriptions): void {
         switch (event) {
         case TrackUnitEvent.On:
-            this.getNode().classList.add("track-unit-on");
+            this.render().classList.add("track-unit-on");
             break;
         case TrackUnitEvent.Off:
-            this.getNode().classList.remove("track-unit-on");
+            this.render().classList.remove("track-unit-on");
             break;
         case TrackUnitEvent.TypeChange:
             switch (this.trackUnit.getType()) {
             case TrackUnitType.Normal:
-                this.getNode().classList.remove("track-unit-ghost");
-                this.getNode().classList.remove("track-unit-accent");
+                this.render().classList.remove("track-unit-ghost");
+                this.render().classList.remove("track-unit-accent");
                 break;
             case TrackUnitType.GhostNote:
-                this.getNode().classList.add("track-unit-ghost");
-                this.getNode().classList.remove("track-unit-accent");
+                this.render().classList.add("track-unit-ghost");
+                this.render().classList.remove("track-unit-accent");
                 break;
             case TrackUnitType.Accent:
-                this.getNode().classList.remove("track-unit-ghost");
-                this.getNode().classList.add("track-unit-accent");
+                this.render().classList.remove("track-unit-ghost");
+                this.render().classList.add("track-unit-accent");
                 break;
             case TrackUnitType.GhostNoteAccent:
-                this.getNode().classList.add("track-unit-ghost");
-                this.getNode().classList.add("track-unit-accent");
+                this.render().classList.add("track-unit-ghost");
+                this.render().classList.add("track-unit-accent");
                 break;
             }
             break;
@@ -149,19 +147,16 @@ export default class TrackUnitView extends UINode implements ISubscriber<EventTy
         if (this.trackUnit.isOn()) {
             classes.push("track-unit-on");
         }
-        return h("div", {
-            classes: classes,
-            oncontextmenu: () => false,
-        });
+        return <div classes={classes} oncontextmenu={() => false} /> as HTMLElement;
     }
 
     onHover(cb: () => void): void {
         this.hoverListeners.push(cb);
-        this.getNode().addEventListener("mouseover", cb);
+        this.render().addEventListener("mouseover", cb);
     }
 
     onMouseDown(cb: (ev: MouseEvent) => void): void {
         this.mouseDownListeners.push(cb);
-        this.getNode().addEventListener("mousedown", cb);
+        this.render().addEventListener("mousedown", cb);
     }
 }

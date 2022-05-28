@@ -1,12 +1,10 @@
-import UINode, {h, UINodeOptions} from "@/ui/UINode";
-import Beat, {BeatEvents} from "@/Beat";
+import { h, ISubscriber, ISubscription, Rung, RungOptions } from "@djledda/ladder";
+import Beat, { BeatEvents } from "@/Beat";
 import TrackView from "@/ui/Track/TrackView";
 import "./Beat.css";
-import ISubscriber from "@/Subscriber";
-import {ISubscription} from "@/Publisher";
 import EditableTextFieldView from "@/ui/Widgets/EditableTextFIeld/EditableTextFieldView";
 
-export type BeatUINodeOptions = UINodeOptions & {
+export type BeatUINodeOptions = RungOptions & {
     beat: Beat,
     orientation?: "horizontal" | "vertical",
 };
@@ -16,7 +14,7 @@ const EventTypeSubscriptions = [
 ] as const;
 type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
-export default class BeatView extends UINode implements ISubscriber<EventTypeSubscriptions> {
+export default class BeatView extends Rung<HTMLElement> implements ISubscriber<EventTypeSubscriptions> {
     private beat: Beat;
     private title: EditableTextFieldView;
     private trackViews: TrackView[] = [];
@@ -50,7 +48,7 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
             if (beat && this.trackViews[i]) {
                 this.trackViews[i].setBeat(beat);
             } else {
-                this.trackViews.push(new TrackView({track: this.beat.getTrackByIndex(i)}));
+                this.trackViews.push(new TrackView({ track: this.beat.getTrackByIndex(i) }));
             }
         }
         const deadTrackViews = this.trackViews.splice(newCount, this.trackViews.length - newCount);
@@ -69,7 +67,7 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
 
     private reverseDisplayOrder(): void {
         this.trackViews.reverse();
-        this.getNode().classList.toggle("vertical");
+        this.render().classList.toggle("vertical");
         this.redraw();
     }
 
@@ -91,19 +89,9 @@ export default class BeatView extends UINode implements ISubscriber<EventTypeSub
     }
 
     build(): HTMLDivElement {
-        return h("div", {
-            className: "beat",
-        },[
-            h("h2", {
-                className: "beat-title",
-            }, [
-                this.title,
-            ]),
-            h("div", {
-                className: "beat-track-container",
-            }, [
-                ...this.trackViews,
-            ]),
-        ]);
+        return <div className={"beat"}>
+            <h2 className={"beat-title"}>{this.title}</h2>
+            <div className={"beat-track-container"}>{...this.trackViews}</div>
+        </div> as HTMLDivElement;
     }
 }

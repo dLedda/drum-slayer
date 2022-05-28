@@ -1,8 +1,7 @@
-import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import "./NumberInput.css";
-import Ref from "@/Ref";
+import { Capsule, h, Rung, RungOptions } from "@djledda/ladder";
 
-type NumberInputUINodeOptionsBase = UINodeOptions & {
+type NumberInputUINodeOptionsBase = RungOptions & {
     label?: string,
     initialValue?: number,
     labelPosition?: "top" | "left",
@@ -26,9 +25,9 @@ type NumberInputUINodeOptionsGetSet = NumberInputUINodeOptionsBase & {
 
 export type NumberInputUINodeOptions = NumberInputUINodeOptionsGetSet | NumberInputUINodeOptionsIncDecInput;
 
-export default class NumberInputView extends UINode {
-    private labelElement: Ref<HTMLLabelElement | null> = Ref.new<HTMLLabelElement | null>(null);
-    private inputElement: Ref<HTMLInputElement | null> = Ref.new<HTMLInputElement | null>(null);
+export default class NumberInputView extends Rung<HTMLDivElement> {
+    private labelElement = Capsule.new<HTMLLabelElement | null>(null);
+    private inputElement = Capsule.new<HTMLInputElement | null>(null);
     private labelPosition: "top" | "left";
     private value: number;
     private label: string | null;
@@ -51,24 +50,27 @@ export default class NumberInputView extends UINode {
     }
 
     setLabel(newLabel: string | null): void {
+        if (!this.labelElement.val) {
+            return;
+        }
         if (newLabel !== null) {
             this.label = newLabel;
-            this.labelElement.val!.innerText = newLabel;
-            this.labelElement.val!.classList.add("visible");
+            this.labelElement.val.innerText = newLabel;
+            this.labelElement.val.classList.add("visible");
         } else {
             this.label = newLabel;
-            this.labelElement.val!.innerText = "";
-            this.labelElement.val!.classList.remove("visible");
+            this.labelElement.val.innerText = "";
+            this.labelElement.val.classList.remove("visible");
         }
     }
 
     disable(): void {
-        this.node?.classList.add("disabled");
+        this.render().classList.add("disabled");
         this.inputElement.val!.disabled = true;
     }
 
     enable(): void {
-        this.node?.classList.remove("disabled");
+        this.render().classList.remove("disabled");
         this.inputElement.val!.disabled = false;
     }
 
@@ -82,31 +84,29 @@ export default class NumberInputView extends UINode {
         if (this.label !== null) {
             labelClasses.push("visible");
         }
-        return h("div", {
-            classes: ["number-input"],
-        }, [
-            h("label", {
-                classes: labelClasses,
-                saveTo: this.labelElement,
-                innerText: this.label ?? "",
-            }),
-            h("button", {
-                innerText: "-",
-                classes: ["number-input-button", "number-input-dec"],
-                onclick: () => {
+        return <div className={"number-input"}>
+            <label
+                classes={labelClasses}
+                saveTo={this.labelElement}>
+                {this.label ?? ""}
+            </label>
+            <button
+                classes={["number-input-button", "number-input-dec"]}
+                onclick={() => {
                     if (this.onDecrement) {
                         this.onDecrement();
                     } else if (this.setter && this.getter) {
                         this.setter(this.getter() - 1);
                     }
-                },
-            }),
-            h("input", {
-                type: "number",
-                saveTo: this.inputElement,
-                classes: ["number-input-input"],
-                valueAsNumber: this.value,
-                onblur: (event: Event) => {
+                }}>
+                -
+            </button>
+            <input
+                type={"number"}
+                saveTo={this.inputElement}
+                className={"number-input-input"}
+                valueAsNumber={this.value}
+                onblur={(event: Event) => {
                     const input = (event.target as HTMLInputElement).valueAsNumber;
                     if (!isNaN(input)) {
                         if (this.onNewInput) {
@@ -115,19 +115,18 @@ export default class NumberInputView extends UINode {
                             this.setter(input);
                         }
                     }
-                },
-            }),
-            h("button", {
-                innerText: "+",
-                classes: ["number-input-button", "number-input-inc"],
-                onclick: () => {
+                }} />
+            <button
+                classes={["number-input-button", "number-input-inc"]}
+                onclick={() => {
                     if (this.onIncrement) {
                         this.onIncrement();
                     } else if (this.setter && this.getter) {
                         this.setter(this.getter() + 1);
                     }
-                },
-            }),
-        ]);
+                }}>
+                +
+            </button>
+        </div> as HTMLDivElement;
     }
 }

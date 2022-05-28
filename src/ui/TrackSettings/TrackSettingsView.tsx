@@ -1,14 +1,12 @@
 import "./TrackSettings.css";
-import Track, {TrackEvents} from "@/Track";
-import UINode, {h, UINodeOptions} from "@/ui/UINode";
-import ISubscriber from "@/Subscriber";
-import {ISubscription} from "@/Publisher";
+import Track, { TrackEvents } from "@/Track";
 import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
 import BoolBoxView from "@/ui/Widgets/BoolBox/BoolBoxView";
 import ActionButtonView from "@/ui/Widgets/ActionButton/ActionButtonView";
 import EditableTextFieldView from "@/ui/Widgets/EditableTextFIeld/EditableTextFieldView";
+import { h, ISubscriber, ISubscription, Rung, RungOptions } from "@djledda/ladder";
 
-export type BeatSettingsViewUINodeOptions = UINodeOptions & {
+export type BeatSettingsViewUINodeOptions = RungOptions & {
     track: Track,
 };
 
@@ -19,7 +17,7 @@ const EventTypeSubscriptions = [
 ];
 type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
-export default class TrackSettingsView extends UINode implements ISubscriber<EventTypeSubscriptions> {
+export default class TrackSettingsView extends Rung implements ISubscriber<EventTypeSubscriptions> {
     private track: Track;
     private loopLengthInput!: NumberInputView;
     private bakeButton!: ActionButtonView;
@@ -67,10 +65,10 @@ export default class TrackSettingsView extends UINode implements ISubscriber<Eve
         }
     }
 
-    build(): HTMLElement {
+    build(): Node {
         this.title = new EditableTextFieldView({
             initialText: this.track.getName(),
-            setter: (newText) => this.track.setName(newText),
+            setter: (newText: string) => this.track.setName(newText),
         });
         this.bakeButton = new ActionButtonView({
             icon: "snowflake",
@@ -90,41 +88,29 @@ export default class TrackSettingsView extends UINode implements ISubscriber<Eve
             value: this.track.isLooping(),
             onInput: (isChecked: boolean) => this.track.setLooping(isChecked),
         });
-        this.loopLengthSection = h("div", {
-            classes: ["loop-settings-option"],
-        }, [
-            this.loopLengthInput,
-        ]);
+        this.loopLengthSection = <div className={"loop-settings-option"}>{this.loopLengthInput}</div> as HTMLDivElement;
         if (this.track.isLooping()) {
             this.loopLengthSection.classList.remove("hide");
         } else {
             this.loopLengthSection.classList.add("hide");
         }
-        return h("div", {
-            classes: ["track-settings"],
-        }, [
-            h("div", {
-                classes: ["track-settings-title-container"]
-            }, [
-                this.title,
-            ]),
-            h("div", {
-                classes: ["track-settings-lower"],
-            }, [
-                this.bakeButton,
-                new ActionButtonView({
+        return <div className={"track-settings"}>
+            <div className={"track-settings-title-container"}>
+                {this.title}
+            </div>
+            <div className={"track-settings-lower"}>
+                {this.bakeButton}
+                {new ActionButtonView({
                     icon: "trash",
                     type: "secondary",
                     alt: "Delete Track",
                     onClick: () => this.track.delete(),
-                }),
-                h("div", {
-                    classes: ["loop-settings"],
-                }, [
-                    this.loopCheckbox,
-                ]),
-                this.loopLengthSection,
-            ]),
-        ]);
+                })}
+                <div className={"loop-settings"}>
+                    {this.loopCheckbox}
+                </div>
+                {this.loopLengthSection}
+            </div>
+        </div>;
     }
 }

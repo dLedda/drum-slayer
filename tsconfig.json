@@ -12,7 +12,10 @@
     "paths": {
       "@/*": ["src/*"],
       "assets/*": ["assets/*"]
-    }
+    },
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "frag",
+    "jsx": "react"
   },
   "include": [
     "./src/**/*",

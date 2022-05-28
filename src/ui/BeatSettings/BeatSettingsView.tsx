@@ -1,13 +1,12 @@
 import "./BeatSettings.css";
-import UINode, {h, UINodeOptions} from "@/ui/UINode";
 import NumberInputView from "@/ui/Widgets/NumberInput/NumberInputView";
-import ISubscriber from "@/Subscriber";
-import Beat, {BeatEvents} from "@/Beat";
+import Beat, { BeatEvents } from "@/Beat";
 import BoolBoxView from "@/ui/Widgets/BoolBox/BoolBoxView";
 import TrackSettingsView from "@/ui/TrackSettings/TrackSettingsView";
 import ActionButtonView from "@/ui/Widgets/ActionButton/ActionButtonView";
+import { h, ISubscriber, Rung, RungOptions } from "@djledda/ladder";
 
-export type BeatSettingsUINodeOptions = UINodeOptions & {
+export type BeatSettingsUINodeOptions = RungOptions & {
     beat: Beat,
 };
 
@@ -21,7 +20,7 @@ const EventTypeSubscriptions = [
 ];
 type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
-export default class BeatSettingsView extends UINode implements ISubscriber<EventTypeSubscriptions> {
+export default class BeatSettingsView extends Rung implements ISubscriber<EventTypeSubscriptions> {
     private beat: Beat;
     private barCountInput!: NumberInputView;
     private timeSigUpInput!: NumberInputView;
@@ -82,13 +81,13 @@ export default class BeatSettingsView extends UINode implements ISubscriber<Even
             }
         }
         if (!this.trackSettingsContainer) {
-            this.trackSettingsContainer = h("div", {}, this.trackSettingsViews);
+            this.trackSettingsContainer = <div>{...this.trackSettingsViews}</div> as HTMLDivElement;
         } else {
             this.trackSettingsContainer.replaceChildren(...this.trackSettingsViews.reverse().map(view => view.render()));
         }
     }
 
-    build(): HTMLElement {
+    build(): Node {
         this.barCountInput = new NumberInputView({
             label: "Bars:",
             initialValue: this.beat.getBarCount(),
@@ -107,34 +106,23 @@ export default class BeatSettingsView extends UINode implements ISubscriber<Even
             onInput: (isChecked: boolean) => this.beat.setIsUsingAutoBeatLength(isChecked),
         });
         this.remakeBeatSettingsViews();
-        return h("div", {
-            classes: ["beat-settings"],
-        }, [
-            h("div", {
-                classes: ["beat-settings-options"],
-            }, [
-                h("div", {
-                    classes: ["beat-settings-boxes", "beat-settings-option"],
-                }, [
-                    this.timeSigUpInput,
-                ]),
-                h("div", {
-                    classes: ["beat-settings-bar-count", "beat-settings-option"]
-                    ,
-                }, [
-                    this.barCountInput,
-                ]),
-                h("div", {
-                    classes: ["beat-settings-bar-count", "beat-settings-option"],
-                }, [
-                    this.autoBeatLengthCheckbox,
-                ]),
-                new ActionButtonView({
+        return <div className={"beat-settings"}>
+            <div className={"beat-settings-options"}>
+                <div classes={["beat-settings-boxes", "beat-settings-option"]}>
+                    {this.timeSigUpInput}
+                </div>
+                <div classes={["beat-settings-bar-count", "beat-settings-option"]}>
+                    {this.barCountInput}
+                </div>
+                <div classes={["beat-settings-bar-count", "beat-settings-option"]}>
+                    {this.autoBeatLengthCheckbox}
+                </div>
+                {new ActionButtonView({
                     label: "New Track",
                     onClick: () => this.beat.addTrack(),
-                }),
-                this.trackSettingsContainer,
-            ]),
-        ]);
+                })}
+                {this.trackSettingsContainer}
+            </div>
+        </div>;
     }
 }

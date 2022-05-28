@@ -1,12 +1,9 @@
-import UINode, {h, UINodeOptions} from "@/ui/UINode";
-import Track, {TrackEvents} from "@/Track";
-import ISubscriber from "@/Subscriber";
+import Track, { TrackEvents } from "@/Track";
 import TrackUnitView from "@/ui/TrackUnit/TrackUnitView";
 import "./Track.css";
-import {ISubscription} from "@/Publisher";
-import Ref from "@/Ref";
+import { Capsule, h, ISubscriber, ISubscription, Rung, RungOptions } from "@djledda/ladder";
 
-export type TrackUINodeOptions = UINodeOptions & {
+export type TrackUINodeOptions = RungOptions & {
     track: Track,
 };
 
@@ -20,9 +17,9 @@ const EventTypeSubscriptions = [
 
 type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
-export default class TrackView extends UINode implements ISubscriber<EventTypeSubscriptions> {
+export default class TrackView extends Rung implements ISubscriber<EventTypeSubscriptions> {
     private track!: Track;
-    private title = Ref.new<HTMLHeadingElement | null>(null);
+    private title = Capsule.new<HTMLHeadingElement | null>(null);
     private trackUnitViews: TrackUnitView[] = [];
     private trackUnitViewBlock: HTMLElement | null = null;
     private lastHoveredTrackUnitView: TrackUnitView | null = null;
@@ -70,7 +67,7 @@ export default class TrackView extends UINode implements ISubscriber<EventTypeSu
                     view = this.trackUnitViews[i];
                     view.setUnit(trackUnit);
                 } else {
-                    view = new TrackUnitView({trackUnit});
+                    view = new TrackUnitView({ trackUnit });
                     this.trackUnitViews.push(view);
                     view.onHover(() => this.onTrackUnitViewHover(view));
                     view.onMouseDown((event: MouseEvent) => this.onTrackUnitClick(event.button, i));
@@ -107,11 +104,7 @@ export default class TrackView extends UINode implements ISubscriber<EventTypeSu
         if (this.trackUnitViewBlock) {
             this.trackUnitViewBlock.replaceChildren(...trackUnitNodes);
         } else {
-            this.trackUnitViewBlock = h("div", {
-                classes: ["track-unit-block"],
-            }, [
-                ...trackUnitNodes
-            ]);
+            this.trackUnitViewBlock = <div className={"track-unit-block"}>{...trackUnitNodes}</div> as HTMLDivElement;
         }
     }
 
@@ -127,7 +120,7 @@ export default class TrackView extends UINode implements ISubscriber<EventTypeSu
         let spacersInserted = false;
         while (!spacersInserted) {
             i += barLength;
-            const newSpacer = h("div", {classes: ["track-spacer"]});
+            const newSpacer = <div className={"track-spacer"} /> as HTMLDivElement;
             const leftNeighbour = this.trackUnitViewBlock.children.item(i);
             if (leftNeighbour) {
                 leftNeighbour.insertAdjacentElement("afterend", newSpacer);
@@ -153,20 +146,16 @@ export default class TrackView extends UINode implements ISubscriber<EventTypeSu
         if (!this.trackUnitViewBlock) {
             throw new Error("Beat unit block setup failed!");
         }
-        return h("div", {
-            classes: ["track"],
-        }, [
-            h("div", {
-                classes: ["track-main"],
-            }, [
-                h("h3", {
-                    innerText: this.track.getName(),
-                    saveTo: this.title,
-                    classes: ["track-title"],
-                }),
-                this.trackUnitViewBlock,
-            ]),
-        ]);
+        return <div className={"track"}>
+            <div className={"track-main"}>
+                <h3
+                    innerText={this.track.getName()}
+                    saveTo={this.title}
+                    className={"track-title"}>
+                </h3>
+                {this.trackUnitViewBlock}
+            </div>
+        </div> as HTMLElement;
     }
 }
 

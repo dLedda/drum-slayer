@@ -1,8 +1,8 @@
 import "./ActionButton.css";
-import UINode, {h, UINodeOptions} from "@/ui/UINode";
-import IconView, {IconName} from "@/ui/Widgets/Icon/IconView";
+import IconView, { IconName } from "@/ui/Widgets/Icon/IconView";
+import { h, Rung, RungOptions } from "@djledda/ladder";
 
-export type ActionButtonUINodeOptions = UINodeOptions & {
+export type ActionButtonUINodeOptions = RungOptions & {
     type?: "primary" | "secondary",
     onClick?: (event: MouseEvent) => void,
     alt?: string,
@@ -15,7 +15,7 @@ export type ActionButtonUINodeOptions = UINodeOptions & {
     icon?: never,
 });
 
-export default class ActionButtonView extends UINode {
+export default class ActionButtonView extends Rung<HTMLButtonElement> {
     private label: string | null = null;
     private icon: IconName | null = null;
     private buttonElement!: HTMLButtonElement;
@@ -48,17 +48,18 @@ export default class ActionButtonView extends UINode {
     }
 
     protected build(): HTMLButtonElement {
-        this.buttonElement = h("button", {
-            classes: ["action-button", `action-button-${this.type}`],
-            onclick: (event: MouseEvent) => this.disabled || this.onClick(event)
-        }, [
-            this.icon !== null ? new IconView({
-                iconName: this.icon,
-                color: "var(--color-p-light)",
-            }) : h("span", {
-                innerText: this.label ?? ""
-            }),
-        ]);
+        this.buttonElement = (
+            <button
+                classes={["action-button", `action-button-${this.type}`]}
+                onclick={(event: MouseEvent) => this.disabled || this.onClick(event)}>
+                {
+                    this.icon ? new IconView({
+                        iconName: this.icon,
+                        color: "var(--color-p-light)",
+                    }) : <span>{this.label ?? ""}</span>
+                }
+            </button>
+        ) as HTMLButtonElement;
         if (this.alt) {
             this.buttonElement.title = this.alt;
         }

@@ -1,6 +1,5 @@
-import Beat, {BeatEvents} from "@/Beat";
-import Ref from "@/Ref";
-import ISubscriber from "@/Subscriber";
+import Beat, { BeatEvents } from "@/Beat";
+import { Capsule, ICapsule, ISubscriber } from "@djledda/ladder";
 
 const EventTypeSubscriptions = [
     BeatEvents.TimeSigUpChanged,
@@ -15,7 +14,7 @@ type EventTypeSubscriptions = typeof EventTypeSubscriptions[number];
 
 export default class BeatStore implements ISubscriber<EventTypeSubscriptions> {
     private readonly beats: Beat[];
-    private activeBeat: Ref<Beat>;
+    private activeBeat: ICapsule<Beat>;
     private onBeatChangeCbs: (() => void)[] = [];
     private autoSave: boolean;
     private orientation: "horizontal" | "vertical" | null = null;
@@ -27,7 +26,7 @@ export default class BeatStore implements ISubscriber<EventTypeSubscriptions> {
             if (save) {
                 const serial = JSON.parse(save);
                 this.beats = [BeatStore.defaultMainBeatGroup()];
-                this.activeBeat = Ref.new(this.beats[0]);
+                this.activeBeat = Capsule.new(this.beats[0]);
                 this.loadFromSave(serial);
                 if (this.autoSave) {
                     this.activeBeat.watch(() => this.save("localStorage"), true);
@@ -39,7 +38,7 @@ export default class BeatStore implements ISubscriber<EventTypeSubscriptions> {
         this.beats = [
             BeatStore.defaultMainBeatGroup(),
         ];
-        this.activeBeat = Ref.new(this.beats[0]);
+        this.activeBeat = Capsule.new(this.beats[0]);
     }
 
     notify(publisher: unknown, event: EventTypeSubscriptions): void {
@@ -53,14 +52,14 @@ export default class BeatStore implements ISubscriber<EventTypeSubscriptions> {
             timeSigUp: 8,
         };
         const mainBeatGroup = new Beat(defaultSettings);
-        mainBeatGroup.addTrack({name: "LF"});
-        mainBeatGroup.addTrack({name: "LH"});
-        mainBeatGroup.addTrack({name: "RH"});
-        mainBeatGroup.addTrack({name: "RF"});
+        mainBeatGroup.addTrack({ name: "LF" });
+        mainBeatGroup.addTrack({ name: "LH" });
+        mainBeatGroup.addTrack({ name: "RH" });
+        mainBeatGroup.addTrack({ name: "RF" });
         return mainBeatGroup;
     }
 
-    getActiveBeat(): Ref<Beat> {
+    getActiveBeat(): ICapsule<Beat> {
         return this.activeBeat;
     }
 

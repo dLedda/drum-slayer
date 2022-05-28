@@ -1,8 +1,6 @@
-import Track, {TrackEvents, TrackInitOptions} from "@/Track";
-import {IPublisher, Publisher} from "@/Publisher";
-import ISubscriber from "@/Subscriber";
-import {greatestCommonDivisor, isPosInt} from "@/utils";
-import Ref from "@/Ref";
+import Track, { TrackEvents, TrackInitOptions } from "@/Track";
+import { greatestCommonDivisor, isPosInt } from "@/utils";
+import { Capsule, ICapsule, IPublisher, ISubscriber, Publisher } from "@djledda/ladder";
 
 type BeatGroupInitOptions = {
     barCount: number;
@@ -56,14 +54,14 @@ export default class Beat implements IPublisher<BeatEvents>, ISubscriber<EventTy
     private globalIsLooping: boolean;
     private useAutoBeatLength: boolean;
     private barSettingsLocked = false;
-    private name: Ref<string>;
+    private name: ICapsule<string>;
 
     constructor(options?: BeatGroupInitOptions) {
         Beat.globalCounter++;
         if (options?.name) {
-            this.name = Ref.new<string>(options.name);
+            this.name = Capsule.new<string>(options.name);
         } else {
-            this.name = Ref.new<string>(`Pattern ${Beat.globalCounter}`);
+            this.name = Capsule.new<string>(`Pattern ${Beat.globalCounter}`);
         }
         if (options?.tracks) {
             for (const trackOptions of options.tracks) {
@@ -185,7 +183,7 @@ export default class Beat implements IPublisher<BeatEvents>, ISubscriber<EventTy
         }
         this.timeSigUp = timeSigUp;
         for (const track of this.tracks) {
-            track.setTimeSignature({up: timeSigUp});
+            track.setTimeSignature({ up: timeSigUp });
         }
         this.autoBeatLength();
         this.publisher.notifySubs(BeatEvents.TimeSigUpChanged);
@@ -332,7 +330,7 @@ export default class Beat implements IPublisher<BeatEvents>, ISubscriber<EventTy
         this.name.val = newName;
     }
 
-    getName(): Ref<string> {
+    getName(): ICapsule<string> {
         return this.name;
     }
 
